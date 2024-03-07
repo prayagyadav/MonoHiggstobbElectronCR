@@ -1,0 +1,1099 @@
+###################################
+# Additions made for UW-HEP pool. #
+###################################
+
+if version >= 10.4.0
+  # define ActivationTimer
+  use feature:policy_expr_fragments
+endif
+
+DAEMON_LIST			= MASTER, STARTD
+LOCAL_DIR = /var/condor
+SPOOL     = $(LOCAL_DIR)/spool
+EXECUTE   = $(LOCAL_DIR)/execute
+RUN       = /var/run/condor
+LOCK      = $(LOCAL_DIR)/log
+LOG       = $(LOCAL_DIR)/log
+#perhaps enable the following once all machines have been converted over
+#LOG = /var/condor_log
+LOCAL_CONFIG_FILE = /etc/condor/$(HOSTNAME).local
+CONDOR_HOST =
+CENTRAL_MANAGER1 = condor.hep.wisc.edu
+CENTRAL_MANAGER2 = condor02.hep.wisc.edu
+COLLECTOR_HOST = $(CENTRAL_MANAGER1),$(CENTRAL_MANAGER2)
+ALLOW_NEGOTIATOR = $(COLLECTOR_HOST)
+ALLOW_NEGOTIATOR_SCHEDD = $(COLLECTOR_HOST), $(FLOCK_NEGOTIATOR_HOSTS)
+CONDOR_ADMIN = condor@hep.wisc.edu
+MAIL = /bin/mail
+UID_DOMAIN = hep.wisc.edu
+FILESYSTEM_DOMAIN = $(FULL_HOSTNAME)
+SCHEDD_MAX_FILE_DESCRIPTORS = 32768
+SHADOW_MAX_FILE_DESCRIPTORS = 1024
+NEGOTIATOR_MAX_FILE_DESCRIPTORS = 32768
+
+#The following is to avoid unnecessary condor_q timeouts on heavily
+#loaded schedds.  Haven't tested which one really matters...
+
+QUERY_TIMEOUT   = 300
+CLIENT_TIMEOUT  = $(QUERY_TIMEOUT)
+Q_QUERY_TIMEOUT = $(QUERY_TIMEOUT)
+
+COLLECTOR_QUERY_WORKERS = 4
+
+#NEGOTIATOR_MAX_TIME_PER_PIESPIN = 300
+#NEGOTIATOR_MAX_TIME_PER_SUBMITTER = 360
+# 2014-03-10: drastically reduce negotiation time to cut off schedds affected by GlobalJobId being in AutoClusterAttrs
+NEGOTIATOR_MAX_TIME_PER_PIESPIN = 30
+NEGOTIATOR_MAX_TIME_PER_SUBMITTER = 40
+
+FLOCK_FROM = \
+  *.chtc.wisc.edu \
+  *.hep.wisc.edu \
+  *.physics.wisc.edu \
+  *.icecube.wisc.edu \
+  condor@amazonaws.com \
+  uwlogin.cern.ch, 128.141.87.248
+
+# wid-cm.discovery.wisc.edu, condor.cs.wisc.edu, condor1.doit.wisc.edu, condor.math.wisc.edu
+FLOCK_TO = cm.chtc.wisc.edu
+
+ALLOW_WRITE = *.hep.wisc.edu $(FLOCK_FROM) $(CERN_LOGIN)
+
+# 128.105.82.0/25 is a CHTC k8s subnet that is used for monitoring and which currently lacks reverse DNS
+ALLOW_READ = *.wisc.edu 128.105.82.0/25 $(CERN_LOGIN)
+
+ALLOW_CONFIG = condor.hep.wisc.edu condor02.hep.wisc.edu
+
+ALLOW_ADMINISTRATOR = condor.hep.wisc.edu condor02.hep.wisc.edu
+
+SEC_PASSWORD_FILE = /etc/condor/pool_password
+SEC_TOKEN_POOL_SIGNING_KEY = $(SEC_PASSWORD_DIRECTORY)/hep.wisc.edu
+SEC_ADVERTISE_STARTD_AUTHENTICATION = REQUIRED
+SEC_ADVERTISE_STARTD_INTEGRITY = REQUIRED
+SEC_ADVERTISE_STARTD_AUTHENTICATION_METHODS = PASSWORD
+SEC_DEFAULT_AUTHENTICATION_METHODS = FS,IDTOKENS
+SEC_CLIENT_AUTHENTICATION_METHODS = FS,IDTOKENS,PASSWORD
+ALLOW_ADVERTISE_STARTD = condor_pool@$(UID_DOMAIN)/*.hep.wisc.edu
+ALLOW_ADVERTISE_MASTER = $(ALLOW_WRITE)
+ALLOW_ADVERTISE_SCHEDD = $(ALLOW_WRITE)
+
+MAX_LOG = 67108864
+MAX_COLLECTOR_LOG = $(MAX_LOG)
+MAX_KBDD_LOG = $(MAX_LOG)
+MAX_NEGOTIATOR_LOG = $(MAX_LOG)
+MAX_NEGOTIATOR_MATCH_LOG = $(MAX_LOG)
+MAX_SCHEDD_LOG = $(MAX_LOG)
+MAX_SHADOW_LOG = $(MAX_LOG)
+MAX_STARTD_LOG = $(MAX_LOG)
+# condor is running out of space in /var because of all the starter logs
+MAX_STARTER_LOG = 10000000
+MAX_MASTER_LOG = $(MAX_LOG)
+MAX_GRIDMANAGER_LOG = $(MAX_LOG)
+
+#####################################################################
+## This is the UWisc - HEP Department Configuration.
+#####################################################################
+
+# Redefine macros used in other expressions such as CPUIdle.
+# Make these scale with number of cores, so pslots behave as expected.
+BackgroundLoad		= 0.3*Cpus
+HighLoad		= 0.5*Cpus
+
+# Only consider starting jobs if:
+# 1) AND the system self-tests have not failed
+# 2) AND if this is a CMSProdSlot, only allow CMS pilots to run
+
+START = MY.PassedTest =!= False \
+        && ( \
+	  MY.IsCMSProdSlot =!= True || regexp("^group_cmspilot",ifThenElse(isUndefined(AccountingGroup),"",AccountingGroup)) \
+	)
+
+# for now, only allow test jobs to run on AlmaLinux9
+START = (MY.OpSysAndVer =!= "AlmaLinux9" || TARGET.AlmaLinux9Test =?= true) && ($(START))
+
+# The following clause was intended to prevent flockers from claiming the cluster
+# after a restart, before all the health checks required by CMS have succeeded.
+# However, it was observed to cause the following claiming protocol error
+# when matching CHTC jobs:
+#STARTD Requirements expression no longer evaluates to a boolean with MODIFY_REQUEST_EXPR_ edits
+#Job no longer matches partitionable slot after MODIFY_REQUEST_EXPR_ edits, retrying w/o edits
+#STARTD Requirements expression no longer evaluates to a boolean w/o MODIFY_REQUEST_EXPR_ edits
+#slot1: Partitionable slot can't be split to allocate a dynamic slot large enough for the claim
+
+#	&& ( \
+#	  MY.DaemonStartTime < CurrentTime-3600/2 || \
+#	  MY.Rank > 0 \
+#	)
+
+
+# Ban MIT frankestein pilots in the T2 cluster.       
+#        ) && ( \
+#          TARGET.GlideinClient =!= "UCSD-CMS-Frontend.MIT-frankestein" \
+#        )
+
+
+STARTD_ATTRS = $(STARTD_ATTRS) IsCMSProdSlot
+
+# Condor's detection of console activity is not reliable (as of 7.2),
+# so we want all slots to be sensitive to keyboard activity (on desktops)
+SLOTS_CONNECTED_TO_KEYBOARD = 1000
+
+# Redefine this to protect against ImageSize being undefined.
+# (It is undefined for jobs that come from the DedicatedScheduler.)
+# This is currently not used in our policy, but if we ever do use it,
+# don't want to forget this hard-learned lesson.
+
+SmallJob	= (IfThenElse(isUndefined(TARGET.ImageSize),false,TARGET.ImageSize <  (15 * 1024)))
+
+# Suspend (instead of vacating/killing) for the following cases:
+# 1. This is a non-checkpointable job and this is a dedicated condor machine
+# (NOTE: it is important that plasma MPI/parallel jobs are not suspended.)
+
+# Dan 2011-10-20: Job suspension is now handled in condor_config.fast_q
+## Dan 2010-05-06: Added IsSlowSlot condition because we are seeing job
+## suspension happening on dedicated systems with no fast q (probably because
+## of disk load).
+#WANT_SUSPEND = (TARGET.JobUniverse =!= $(STANDARD)) && MY.IsDedicated=?=True && MY.IsSlowSlot=?=True && ($(SUSPEND))
+#WANT_PREEMPT = (TARGET.JobUniverse =?= $(STANDARD)) && MY.IsDedicated=?=True && MY.IsSlowSlot=?=True && ($(SUSPEND))
+WANT_SUSPEND = False
+
+# When preempting, vacate (instead of killing) in the following cases:
+# 1) This is a dedicated condor machine
+# Note that vacating will allow the job to continue to run (after sending
+# a soft-kill signal) until the KILL expression kicks in.
+WANT_VACATE = MY.IsDedicated =?= True
+
+# Dan 2011-10-20: Disabling suspension based on load.  It is better not
+# to depend on load if it is not needed.  The fast q now has its own
+# suspension mechanism based on slot state rather than cpu load.
+## Suspend jobs if:
+## 1) The cpu has been busy for more than 2 minutes
+#
+#SUSPEND= (CpuBusyTime > 2 * $(MINUTE))
+SUSPEND = false
+
+
+# Continue jobs if:
+# 1) the cpu is idle
+
+#CONTINUE = $(CPUIdle)
+CONTINUE = true
+
+# Preempt jobs if:
+# 1) this is not a dedicated condor machine and the cpu is busy
+# 2) OR this is a desktop and the keyboard/mouse has been recently touched
+PREEMPT = MY.IsDedicated =!= True && CpuBusyTime > 2*$(MINUTE) || \
+          MY.IsDesktop =?= True && KeyboardIdle < 300 || \
+          ( $(WANT_HOLD) )
+
+# Kill jobs if they have taken too long to vacate gracefully
+KILL = ($(ActivityTimer) > $(MaxVacateTime)) || ($(WANT_VACATE) == False)
+
+
+# Put cms user jobs on hold if they run to the limit of
+# MaxJobRetirementTime.  This prevents wasteful attempts to rerun jobs
+# that will never complete.  We do this by making PREEMPT true shortly
+# before the end of the retirement time.  This isn't exact, because it
+# doesn't take into account how much time the job was suspended, but
+# it doesn't matter, because the job is protected until the retirement
+# time actually expires, and retirement time _does_ take suspension
+# into account.  If the job finishes on its own, no problem.
+# Otherwise, when the retirement time expires, the job will be put on
+# hold.
+
+WANT_HOLD_LONGJOB = \
+  $(ActivationTimer) > 3600*(24*2-1) && \
+  regexp("(group_cmspilot)|(group_cmsprod)|(group_uscmspilot)",ifThenElse(isUndefined(AccountingGroup),"",AccountingGroup))=!=true && \
+  (User =!= "slomte@hep.wisc.edu" )
+
+# Put jobs on hold for using too much memory.
+# When using cgroups, ImageSize is memory.memsw.max_usage_in_bytes,
+# which is exactly what we want to use in our hold policy.  If swap
+# accounting is not enabled in the linux kernel, condor will instead
+# use memory.max_usage_in_bytes, which will not include swap usage.
+# In practice, that is probably ok for CGROUP_MEMORY_LIMIT_POLICY =
+# soft, since the job is allowed to use more resident memory than the
+# soft limit and will therefore get held.  It would not be ok if a
+# hard limit were used, because it would not exceed the hard limit and
+# would just swap instead.
+
+# Greg Thain warns that with cgroups, file system cache usage impacts
+# ImageSize.  I think I have seen the effects of that, resulting in
+# crazy huge ImageSize.  Therefore, just let CGROUPS_MEMORY_LIMIT_POLICY
+# handle this.
+#WANT_HOLD_MEMORY = ImageSize/1024 > Memory*1.6
+WANT_HOLD_MEMORY = False
+
+# Put jobs on hold for using too much disk.
+WANT_HOLD_DISK = DiskUsage > TotalSlotDisk*2
+
+WANT_HOLD = ($(WANT_HOLD_LONGJOB)) || ($(WANT_HOLD_MEMORY)) || ($(WANT_HOLD_DISK))
+
+WANT_HOLD_REASON = ifThenElse($(WANT_HOLD_LONGJOB),"CMS user job ran for more than 48 hours",\
+                   ifThenElse($(WANT_HOLD_MEMORY),strcat("The job used ",ImageSize/1024," MB memory that exceeded the allocated ",Memory," MB."),\
+                   ifThenElse($(WANT_HOLD_DISK),strcat("The job used more disk than the allocated ",TotalSlotDisk," KB (x5)."),undefined)))
+
+# When a claim is being preempted, let the job finish running
+# for some time before killing it.
+
+# Give glideins extra time, since they should be well behaved and
+# shut down in reasonable time.  We don't get any credit for
+# running them if they get preempted, even though some jobs
+# may have run successfully.
+#
+# 5 days - osg_cmsprod
+# 3 days - CMS pilots
+# 3 days - COVID pilots
+# 2 days - CMS job (e.g. local farmout jobs)
+# 1 day  - lz
+
+MaxJobRetirementTime = (IsDesktop =!= True) * (($(WANT_HOLD_MEMORY)) =!= True) * (($(WANT_HOLD_DISK)) =!= True) * ( \
+   (HEP_VO =?= "lz" || OSG_VO =?= "lz") * 3600*24 + \
+   (HEP_VO =?= "uscms" || x509UserProxyVOName =?= "cms") * 3600*24*2  + \
+   (User == "osg_cmsprod@hep.wisc.edu") * 3600*24*3 + \
+   (regexp("(group_cmspilot)|(group_cmsprod)|(group_uscmspilot)",ifThenElse(isUndefined(AccountingGroup),"",AccountingGroup)) * 3600*24) \
+)
+
+# Allow preemption by user-priority after 24*2 hours of a job's life.
+PREEMPTION_REQUIREMENTS = \
+MY.NiceUser == TRUE || \
+( $(ActivationTimer) > (24*2 * $(HOUR)) ) \
+&& RemoteUserPrio > SubmittorPrio * 1.2
+
+# Allow recycling of claims for up to 12 hours
+CLAIM_WORKLIFE = 12 * $(HOUR)
+
+
+# 3600 * 24 * 4
+SHUTDOWN_GRACEFUL_TIMEOUT = 345600
+
+# Once a list of potential matches has been made by the negotiator,
+# always preferentially choose machines which are fragmented and idle
+# (or running guest jobs), idle, dedicated compute nodes, and
+# non-desktops, in that order of preference.
+# The reference to IsSAMJob is to allow SAM jobs to run on idle
+# GPU slots with equal rank to running on dedicated SAM slots.
+
+NEGOTIATOR_PRE_JOB_RANK = \
+  4*(Cpus<8 && CurrentRank <= 0 && TARGET.IsSAMJob=!=True) + \
+  3*(RemoteOwner =?= UNDEFINED) + \
+  2*(IsDedicated =?= True) + \
+  1*(IsDesktop   =!= True)
+
+#IsDedicated, and IsDesktop may optionally be defined
+#in the local config file.
+
+PoolName = "HEP"
+STARTD_ATTRS = $(STARTD_ATTRS) COLLECTOR_HOST_STRING IsDedicated IsDesktop PoolName
+
+#GLOW group
+Group = "HEP"
+
+#By default, do not publish a HEP_VO
+#CMS users will have this set up in their environment, so they get
+#HEP_VO="uscms"
+
+# The default job lease duration of 20 minutes is not long enough,
+# because busy schedds are falling behind in sending keepalives.
+JobLeaseDuration = 3600
+
+# CHTC requires that ProjectName be defined in jobs
+ProjectName = "UWMadison_HEP"
+
+SubmitMachine = "$(FULL_HOSTNAME)"
+SUBMIT_ATTRS = SubmitMachine Group HEP_VO JobLeaseDuration ProjectName
+
+APPEND_REQ_VANILLA = (MY.NoAutoRequirements=?=True || ($(OS_REQUIREMENTS:True) && (MY.HEP_VO =!= "uscms" || TARGET.CMS_CVMFS_Exists && TARGET.UWCMS_CVMFS_Exists)))
+
+STARTD_CRON_JOBLIST =
+
+# 2011-11-14: Dan: disabling test_machine.  It doesn't seem that useful.
+# Also, I _think_ TEST_MACHINE_MONITOR_ARGS needed to have --now added,
+# because it was sleeping and then rarely completing, because the
+# top-level process got killed by condor if it didn't complete before
+# the next scheduled time.
+#STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) TEST_MACHINE
+#STARTD_CRON_TEST_MACHINE_PREFIX =
+#STARTD_CRON_TEST_MACHINE_EXECUTABLE = /opt/hawkeye/test_machine/bin/test_machine_hawkeye
+#STARTD_CRON_TEST_MACHINE_PERIOD = 24h
+#STARTD_CRON_TEST_MACHINE_MODE = periodic
+#STARTD_CRON_TEST_MACHINE_RECONFIG = false
+#STARTD_CRON_TEST_MACHINE_KILL = true
+#STARTD_CRON_TEST_MACHINE_ARGS = /var/condor/test_machine
+
+#STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) TEST_MACHINE_MONITOR
+#STARTD_CRON_TEST_MACHINE_MONITOR_PREFIX =
+#STARTD_CRON_TEST_MACHINE_MONITOR_EXECUTABLE = /opt/hawkeye/test_machine/bin/test_machine_hawkeye
+#STARTD_CRON_TEST_MACHINE_MONITOR_PERIOD = 30m
+#STARTD_CRON_TEST_MACHINE_MONITOR_MODE = periodic
+#STARTD_CRON_TEST_MACHINE_MONITOR_RECONFIG = false
+#STARTD_CRON_TEST_MACHINE_MONITOR_KILL = true
+#STARTD_CRON_TEST_MACHINE_MONITOR_ARGS = --now --read_only /var/condor/test_machine
+
+STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) HAS_AFS
+STARTD_CRON_HAS_AFS_PREFIX =
+STARTD_CRON_HAS_AFS_EXECUTABLE = /opt/hawkeye/has_afs/has_afs
+STARTD_CRON_HAS_AFS_PERIOD = 10m
+STARTD_CRON_HAS_AFS_MODE = periodic
+STARTD_CRON_HAS_AFS_RECONFIG = false
+STARTD_CRON_HAS_AFS_KILL = true
+STARTD_CRON_HAS_AFS_ARGS = hep.wisc.edu
+
+STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) HAS_AFS_ATLAS
+STARTD_CRON_HAS_AFS_ATLAS_PREFIX =
+STARTD_CRON_HAS_AFS_ATLAS_EXECUTABLE = /opt/hawkeye/has_afs_atlas/has_afs_atlas
+STARTD_CRON_HAS_AFS_ATLAS_PERIOD = 10m
+STARTD_CRON_HAS_AFS_ATLAS_MODE = periodic
+STARTD_CRON_HAS_AFS_ATLAS_RECONFIG = false
+STARTD_CRON_HAS_AFS_ATLAS_KILL = true
+STARTD_CRON_HAS_AFS_ATLAS_ARGS =
+
+STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) HAS_AFS_OSG
+STARTD_CRON_HAS_AFS_OSG_PREFIX =
+STARTD_CRON_HAS_AFS_OSG_EXECUTABLE = /opt/hawkeye/has_afs_osg/has_afs_osg
+STARTD_CRON_HAS_AFS_OSG_PERIOD = 10m
+STARTD_CRON_HAS_AFS_OSG_MODE = periodic
+STARTD_CRON_HAS_AFS_OSG_RECONFIG = false
+STARTD_CRON_HAS_AFS_OSG_KILL = true
+STARTD_CRON_HAS_AFS_OSG_ARGS =
+
+STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) HAS_OSG
+STARTD_CRON_HAS_OSG_PREFIX =
+STARTD_CRON_HAS_OSG_EXECUTABLE = /opt/hawkeye/has_osg
+STARTD_CRON_HAS_OSG_PERIOD = 10m
+STARTD_CRON_HAS_OSG_MODE = periodic
+STARTD_CRON_HAS_OSG_RECONFIG = false
+STARTD_CRON_HAS_OSG_KILL = true
+STARTD_CRON_HAS_OSG_ARGS =
+
+STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) HAS_CMS_HDFS
+STARTD_CRON_HAS_CMS_HDFS_PREFIX =
+STARTD_CRON_HAS_CMS_HDFS_EXECUTABLE = /opt/hawkeye/has_cms_hdfs
+STARTD_CRON_HAS_CMS_HDFS_PERIOD = 10m
+STARTD_CRON_HAS_CMS_HDFS_MODE = periodic
+STARTD_CRON_HAS_CMS_HDFS_RECONFIG = false
+STARTD_CRON_HAS_CMS_HDFS_KILL = true
+STARTD_CRON_HAS_CMS_HDFS_ARGS =
+
+STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) CHECK_UWCMS_CVMFS
+STARTD_CRON_CHECK_UWCMS_CVMFS_PREFIX = UWCMS_CVMFS_
+STARTD_CRON_CHECK_UWCMS_CVMFS_EXECUTABLE = /opt/hawkeye/check_cvmfs
+STARTD_CRON_CHECK_UWCMS_CVMFS_PERIOD = 10m
+STARTD_CRON_CHECK_UWCMS_CVMFS_MODE = periodic
+STARTD_CRON_CHECK_UWCMS_CVMFS_RECONFIG = false
+STARTD_CRON_CHECK_UWCMS_CVMFS_KILL = true
+STARTD_CRON_CHECK_UWCMS_CVMFS_ARGS = cms.hep.wisc.edu
+
+STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) CHECK_CMS_CVMFS
+STARTD_CRON_CHECK_CMS_CVMFS_PREFIX = CMS_CVMFS_
+STARTD_CRON_CHECK_CMS_CVMFS_EXECUTABLE = /opt/hawkeye/check_cvmfs
+STARTD_CRON_CHECK_CMS_CVMFS_PERIOD = 10m
+STARTD_CRON_CHECK_CMS_CVMFS_MODE = periodic
+STARTD_CRON_CHECK_CMS_CVMFS_RECONFIG = false
+STARTD_CRON_CHECK_CMS_CVMFS_KILL = true
+STARTD_CRON_CHECK_CMS_CVMFS_ARGS = cms.cern.ch
+
+STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) CHECK_CMSIB_CVMFS
+STARTD_CRON_CHECK_CMSIB_CVMFS_PREFIX = CMSIB_CVMFS_
+STARTD_CRON_CHECK_CMSIB_CVMFS_EXECUTABLE = /opt/hawkeye/check_cvmfs
+STARTD_CRON_CHECK_CMSIB_CVMFS_PERIOD = 24h
+STARTD_CRON_CHECK_CMSIB_CVMFS_MODE = periodic
+STARTD_CRON_CHECK_CMSIB_CVMFS_RECONFIG = false
+STARTD_CRON_CHECK_CMSIB_CVMFS_KILL = true
+STARTD_CRON_CHECK_CMSIB_CVMFS_ARGS = cms-ib.cern.ch 86400
+
+STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) CHECK_GRIDCERN_CVMFS
+STARTD_CRON_CHECK_GRIDCERN_CVMFS_PREFIX = GRIDCERN_CVMFS_
+STARTD_CRON_CHECK_GRIDCERN_CVMFS_EXECUTABLE = /opt/hawkeye/check_cvmfs
+STARTD_CRON_CHECK_GRIDCERN_CVMFS_PERIOD = 24h
+STARTD_CRON_CHECK_GRIDCERN_CVMFS_MODE = periodic
+STARTD_CRON_CHECK_GRIDCERN_CVMFS_RECONFIG = false
+STARTD_CRON_CHECK_GRIDCERN_CVMFS_KILL = true
+STARTD_CRON_CHECK_GRIDCERN_CVMFS_ARGS = grid.cern.ch 86400
+
+STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) CHECK_INFN_CVMFS
+STARTD_CRON_CHECK_INFN_CVMFS_PREFIX = MUONCOLL_CVMFS_
+STARTD_CRON_CHECK_INFN_CVMFS_EXECUTABLE = /opt/hawkeye/check_cvmfs
+STARTD_CRON_CHECK_INFN_CVMFS_PERIOD = 24h
+STARTD_CRON_CHECK_INFN_CVMFS_MODE = periodic
+STARTD_CRON_CHECK_INFN_CVMFS_RECONFIG = false
+STARTD_CRON_CHECK_INFN_CVMFS_KILL = true
+STARTD_CRON_CHECK_INFN_CVMFS_ARGS = muoncollider.cern.ch 86400
+
+STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) CHECK_OASIS_CVMFS
+STARTD_CRON_CHECK_OASIS_CVMFS_PREFIX = OASIS_CVMFS_
+STARTD_CRON_CHECK_OASIS_CVMFS_EXECUTABLE = /opt/hawkeye/check_cvmfs
+# Dan: 2013-10-07: check OASIS infrequently, because the catalog is so large, it is putting strain on our squids
+STARTD_CRON_CHECK_OASIS_CVMFS_PERIOD = 24h
+STARTD_CRON_CHECK_OASIS_CVMFS_MODE = periodic
+STARTD_CRON_CHECK_OASIS_CVMFS_RECONFIG = false
+STARTD_CRON_CHECK_OASIS_CVMFS_KILL = true
+STARTD_CRON_CHECK_OASIS_CVMFS_ARGS = oasis.opensciencegrid.org 86400
+
+STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) OS_INFO
+STARTD_CRON_OS_INFO_PREFIX =
+STARTD_CRON_OS_INFO_EXECUTABLE = /opt/hawkeye/os_info/os_info
+STARTD_CRON_OS_INFO_PERIOD = 30m
+STARTD_CRON_OS_INFO_MODE = periodic
+STARTD_CRON_OS_INFO_RECONFIG = false
+STARTD_CRON_OS_INFO_KILL = true
+STARTD_CRON_OS_INFO_ARGS =
+
+STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) DISK_TEMP
+STARTD_CRON_DISK_TEMP_PREFIX =
+STARTD_CRON_DISK_TEMP_EXECUTABLE = /opt/hawkeye/hddtemp
+STARTD_CRON_DISK_TEMP_PERIOD = 10m
+STARTD_CRON_DISK_TEMP_MODE = periodic
+STARTD_CRON_DISK_TEMP_RECONFIG = false
+STARTD_CRON_DISK_TEMP_KILL = true
+STARTD_CRON_DISK_TEMP_ARGS =
+
+STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) CHECK_COOLOFF
+STARTD_CRON_CHECK_COOLOFF_PREFIX =
+STARTD_CRON_CHECK_COOLOFF_EXECUTABLE = /opt/hawkeye/check_cooloff
+STARTD_CRON_CHECK_COOLOFF_PERIOD = 1m
+STARTD_CRON_CHECK_COOLOFF_MODE = periodic
+STARTD_CRON_CHECK_COOLOFF_RECONFIG = false
+STARTD_CRON_CHECK_COOLOFF_KILL = true
+STARTD_CRON_CHECK_COOLOFF_ARGS =
+
+STARTD_CRON_JOBLIST = $(STARTD_CRON_JOBLIST) CHECK_TMP
+STARTD_CRON_CHECK_TMP_PREFIX =
+STARTD_CRON_CHECK_TMP_EXECUTABLE = /opt/hawkeye/check_tmp
+STARTD_CRON_CHECK_TMP_PERIOD = 10m
+STARTD_CRON_CHECK_TMP_MODE = periodic
+STARTD_CRON_CHECK_TMP_RECONFIG = false
+STARTD_CRON_CHECK_TMP_KILL = true
+STARTD_CRON_CHECK_TMP_ARGS =
+
+ENABLE_GRID_MONITOR = True
+# We had ~8k jobs at FNAL and this caused problems, so I am scaling this back.
+#GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE = 10000
+GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE = 4000
+
+#CDF glideins get messed up if they land on the worker node with
+#a delegated proxy
+DELEGATE_JOB_GSI_CREDENTIALS = False
+
+#Spread out updates, like glow config does
+MASTER_UPDATE_INTERVAL = $RANDOM_CHOICE(290,291,292,293,294,295,296,297,298,299,301,302,303,304,305,306,307,308,309,310)
+UPDATE_INTERVAL        = $RANDOM_CHOICE(290,291,292,293,294,295,296,297,298,299,301,302,303,304,305,306,307,308,309,310)
+
+CREATE_CORE_FILES = True
+
+# allow glideins to see MJF variables
+# see "Machine Job Features" in http://glideinwms.fnal.gov/doc.prd/factory/custom_vars.html
+# The specific feature we may want is "shutdowntime", so we don't
+# really need all the rest of the complexity of the scripts that
+# create other files in /var/run/wlcg-mjf-host-features (/etc/cron.d/wlcg_mjf).
+# If $MACHINEFEATURES/shutdowntime exists and contains a timestamp,
+# the glidein script check_wn_drainstate.sh will set
+# SiteWMS_WN_Draining, so no new jobs will start in the glidein.  If
+# the timestamp is less than 1800s in the future, it will also set
+# SiteWMS_WN_Preempt, which will cause jobs to be killed.
+
+STARTER_JOB_ENVIRONMENT = "MACHINEFEATURES=/var/run/wlcg-mjf-host-features"
+
+#####################################
+## Settings for Parallel Universe  ##
+#####################################
+
+##  Path to the special version of rsh that's required to spawn MPI
+##  jobs under Condor.  WARNING: This is not a replacement for rsh,
+##  and does NOT work for interactive use.  Do not use it directly!
+MPI_CONDOR_RSH_PATH = $(LIBEXEC)
+
+##  Path to OpenSSH server binary
+##  Condor uses this to establish a private SSH connection between execute
+##  machines. It is usually in /usr/sbin, but may be in /usr/local/sbin
+CONDOR_SSHD = /afs/hep.wisc.edu/condor/sbin/mpi_sshd
+
+##  Path to OpenSSH keypair generator.
+##  Condor uses this to establish a private SSH connection between execute
+##  machines. It is usually in /usr/bin, but may be in /usr/local/bin
+CONDOR_SSH_KEYGEN = /usr/bin/ssh-keygen
+
+# Required by CRAB
+GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE = 5
+
+
+# for scalability of job submission, do not renice shadows:
+SHADOW_RENICE_INCREMENT = 0
+
+# huge jobs are causing swap hell
+# We will need to adjust this (or move it to the machine policy) once
+# the RAM/batch slot ratio changes.
+# Update: this is causing a lot of apparently well behaved jobs to go on
+# hold.  Often, this happens right when the job exits.  For some reason,
+# the ImageSize reported by the starter jumps up a lot in the final update
+# for some jobs.  I can't see any way to prevent the job from going on
+# hold at that time.
+# SYSTEM_PERIODIC_HOLD = (JobStatus == 1 || JobStatus == 2) && ImageSize >= 1200000
+
+# The admin can set SuspendedByAdmin to true using condor_config_val or
+# via the condor_suspend script.
+SuspendedByAdmin = False
+SETTABLE_ATTRS_ADMINISTRATOR = $(SETTABLE_ATTRS_ADMINISTRATOR) SuspendedByAdmin
+ENABLE_RUNTIME_CONFIG = True
+STARTD_ATTRS = $(STARTD_ATTRS),SuspendedByAdmin
+START = ($(START)) && SuspendedByAdmin =!= True
+WANT_SUSPEND = ($(WANT_SUSPEND)) || SuspendedByAdmin =?= True
+SUSPEND = ($(SUSPEND)) || SuspendedByAdmin =?= True
+CONTINUE = ($(CONTINUE)) && SuspendedByAdmin =!= True
+
+MachineTooHot = MY.MaxDiskTempC =!= UNDEFINED && MY.MaxDiskTempC > 45
+MachineIsCool = MY.MaxDiskTempC =?= UNDEFINED || MY.MaxDiskTempC < 42
+STARTD_ATTRS = $(STARTD_ATTRS) MachineTooHot MachineIsCool
+START = ($(START)) && MY.MachineTooHot =!= True && MY.InCooloffMode =?= False
+# Do not suspend jobs, because that could cause glideins to timeout.
+# The cooloff script will suspend high CPU users.
+#WANT_SUSPEND = ($(WANT_SUSPEND)) || MY.MachineTooHot =?= True
+#SUSPEND = ($(SUSPEND)) || MY.MachineTooHot =?= True
+#CONTINUE = ($(CONTINUE)) && MY.MachineIsCool =?= True
+
+START = ($(START)) && MY.TmpIsFull =!= True
+
+# jobs with huge sandboxes (~200,000 files) are causing the starter and startd
+# to be hard-killed when trying to clean up, so I am increasing the timeout.
+# When the startd times out on the starter, then the startd deletes the rest
+# of the sandbox, which can cause the startd to block for a long time and
+# then get killed.  Therefore, use a bigger timeout for the starter.
+STARTER_NOT_RESPONDING_TIMEOUT = 14400
+STARTD_NOT_RESPONDING_TIMEOUT = 7200
+# Also, increase starter update interval so it is not scanning disk usage
+# every 5 minutes.
+STARTER_UPDATE_INTERVAL = 1200
+
+# Include useful info in the job classad.
+STARTD_JOB_EXPRS = $(STARTD_JOB_EXPRS),x509userproxysubject,x509userproxy,DiskUsage
+
+# small disk usage values are causing too many auto clusters, due to
+# the default 25% rule
+SCHEDD_ROUND_ATTR_DiskUsage = 6
+
+# 1G
+JOB_DEFAULT_REQUESTMEMORY = 1000
+
+# 1G
+JOB_DEFAULT_REQUESTDISK = 1000000
+
+# HoldReasonCode=6,HoldReasonSubCode=110 is "Connection timed out" when trying to exec the job.  This actually means the initial working directory in AFS timed out.
+
+#The following releases jobs that are going on hold because of AFS timeouts.
+SYSTEM_PERIODIC_RELEASE = \
+  ((CurrentTime - EnteredCurrentStatus) > 1200) && \
+  (HoldReasonSubCode == 110)
+
+#Put jobs on hold if they run way too long
+#Jobs running on the T2 should get stopped by the machine policy before hitting this.
+#We have seen grid jobs get stuck when the user proxy expires.  The job
+#will keep running and getting preempted after a day and then running again.
+# Don't mess with glideins, because they manage their own
+# runtime in a reasonable way, and we don't want to be punished for
+# "wasted time" when glidein jobs go on hold.
+
+SYSTEM_PERIODIC_HOLD = \
+  (HEP_VO =?= "uscms" || x509UserProxyVOName =?= "cms") && regexp("(group_cmspilot)|(group_cmsprod)|(group_uscmspilot)",ifThenElse(isUndefined(AccountingGroup),"",AccountingGroup))=!=true && JobUniverse == 5 && \
+  ( \
+    (JobStatus == 2 && CurrentTime-JobCurrentStartDate > 3600*24*3) || \
+    (JobStatus == 1 && RemoteWallClockTime - CumulativeSuspensionTime > 3600*24*3) \
+  ) && \
+  BIG_MEMORY_JOB =!= true
+
+SYSTEM_PERIODIC_HOLD_REASON = "CMS user job ran for more than 48 hours"
+
+# remove held jobs that accumulate for various known reasons
+#   - submit directory no longer exists
+SYSTEM_PERIODIC_REMOVE = JobStatus == 5 && CurrentTime-EnteredCurrentStatus > 3600*24*2 && (\
+  (HoldReasonCode == 12 && HoldReasonSubCode == 2) || \
+  (HoldReasonCode == 14 && HoldReasonSubCode == 2) || \
+  (HoldReasonCode == 13 && HoldReasonSubCode == 2) \
+)
+
+#advertise if on same machine as fast q, so fast jobs can avoid
+STARTD_ATTRS = $(STARTD_ATTRS) IsSlowSlot
+
+# 2010-09-02: the master is sending SIGABRT to job_router on caraway
+# but job_router is hanging while dumping its stack to the log file,
+# and then staying in that hung state for many hours.  Until that is fixed,
+# just have the master send SIGKILL instead.
+#NOT_RESPONDING_WANT_CORE = True
+
+#preen doesn't deal with startd_history rotations
+#by not defining VALID_SPOOL_FILES, we prevent preen from trying to
+#clean the spool directory (as of 7.4.2 anyway)
+#VALID_SPOOL_FILES = $(VALID_SPOOL_FILES) $(STARTD_HISTORY)
+
+MAX_HISTORY_LOG = 500000000
+
+Site = "HEP"
+STARTD_ATTRS = $(STARTD_ATTRS), Site
+
+# the per-slot execute paths are symlinks maintained by cfengine
+SLOT1_EXECUTE = /var/condor/.execute-links/slot01
+SLOT2_EXECUTE = /var/condor/.execute-links/slot02
+SLOT3_EXECUTE = /var/condor/.execute-links/slot03
+SLOT4_EXECUTE = /var/condor/.execute-links/slot04
+SLOT5_EXECUTE = /var/condor/.execute-links/slot05
+SLOT6_EXECUTE = /var/condor/.execute-links/slot06
+SLOT7_EXECUTE = /var/condor/.execute-links/slot07
+SLOT8_EXECUTE = /var/condor/.execute-links/slot08
+SLOT9_EXECUTE = /var/condor/.execute-links/slot09
+SLOT10_EXECUTE = /var/condor/.execute-links/slot10
+SLOT11_EXECUTE = /var/condor/.execute-links/slot11
+SLOT12_EXECUTE = /var/condor/.execute-links/slot12
+SLOT13_EXECUTE = /var/condor/.execute-links/slot13
+SLOT14_EXECUTE = /var/condor/.execute-links/slot14
+SLOT15_EXECUTE = /var/condor/.execute-links/slot15
+SLOT16_EXECUTE = /var/condor/.execute-links/slot16
+SLOT17_EXECUTE = /var/condor/.execute-links/slot17
+SLOT18_EXECUTE = /var/condor/.execute-links/slot18
+SLOT19_EXECUTE = /var/condor/.execute-links/slot19
+SLOT20_EXECUTE = /var/condor/.execute-links/slot20
+SLOT21_EXECUTE = /var/condor/.execute-links/slot21
+SLOT22_EXECUTE = /var/condor/.execute-links/slot22
+SLOT23_EXECUTE = /var/condor/.execute-links/slot23
+SLOT24_EXECUTE = /var/condor/.execute-links/slot24
+SLOT25_EXECUTE = /var/condor/.execute-links/slot25
+SLOT26_EXECUTE = /var/condor/.execute-links/slot26
+SLOT27_EXECUTE = /var/condor/.execute-links/slot27
+SLOT28_EXECUTE = /var/condor/.execute-links/slot28
+SLOT29_EXECUTE = /var/condor/.execute-links/slot29
+SLOT30_EXECUTE = /var/condor/.execute-links/slot30
+SLOT31_EXECUTE = /var/condor/.execute-links/slot31
+SLOT32_EXECUTE = /var/condor/.execute-links/slot32
+SLOT33_EXECUTE = /var/condor/.execute-links/slot33
+SLOT34_EXECUTE = /var/condor/.execute-links/slot34
+SLOT35_EXECUTE = /var/condor/.execute-links/slot35
+SLOT36_EXECUTE = /var/condor/.execute-links/slot36
+SLOT37_EXECUTE = /var/condor/.execute-links/slot37
+SLOT38_EXECUTE = /var/condor/.execute-links/slot38
+SLOT39_EXECUTE = /var/condor/.execute-links/slot39
+SLOT40_EXECUTE = /var/condor/.execute-links/slot40
+SLOT41_EXECUTE = /var/condor/.execute-links/slot41
+SLOT42_EXECUTE = /var/condor/.execute-links/slot42
+SLOT43_EXECUTE = /var/condor/.execute-links/slot43
+SLOT44_EXECUTE = /var/condor/.execute-links/slot44
+SLOT45_EXECUTE = /var/condor/.execute-links/slot45
+SLOT46_EXECUTE = /var/condor/.execute-links/slot46
+SLOT47_EXECUTE = /var/condor/.execute-links/slot47
+SLOT48_EXECUTE = /var/condor/.execute-links/slot48
+SLOT49_EXECUTE = /var/condor/.execute-links/slot49
+SLOT50_EXECUTE = /var/condor/.execute-links/slot50
+SLOT51_EXECUTE = /var/condor/.execute-links/slot51
+SLOT52_EXECUTE = /var/condor/.execute-links/slot52
+SLOT53_EXECUTE = /var/condor/.execute-links/slot53
+SLOT54_EXECUTE = /var/condor/.execute-links/slot54
+SLOT55_EXECUTE = /var/condor/.execute-links/slot55
+SLOT56_EXECUTE = /var/condor/.execute-links/slot56
+SLOT57_EXECUTE = /var/condor/.execute-links/slot57
+SLOT58_EXECUTE = /var/condor/.execute-links/slot58
+SLOT59_EXECUTE = /var/condor/.execute-links/slot59
+SLOT60_EXECUTE = /var/condor/.execute-links/slot60
+SLOT61_EXECUTE = /var/condor/.execute-links/slot61
+SLOT62_EXECUTE = /var/condor/.execute-links/slot62
+SLOT63_EXECUTE = /var/condor/.execute-links/slot63
+SLOT64_EXECUTE = /var/condor/.execute-links/slot64
+SLOT65_EXECUTE = /var/condor/.execute-links/slot65
+SLOT66_EXECUTE = /var/condor/.execute-links/slot66
+SLOT67_EXECUTE = /var/condor/.execute-links/slot67
+SLOT68_EXECUTE = /var/condor/.execute-links/slot68
+SLOT69_EXECUTE = /var/condor/.execute-links/slot69
+SLOT70_EXECUTE = /var/condor/.execute-links/slot70
+SLOT71_EXECUTE = /var/condor/.execute-links/slot71
+SLOT72_EXECUTE = /var/condor/.execute-links/slot72
+SLOT73_EXECUTE = /var/condor/.execute-links/slot73
+SLOT74_EXECUTE = /var/condor/.execute-links/slot74
+SLOT75_EXECUTE = /var/condor/.execute-links/slot75
+SLOT76_EXECUTE = /var/condor/.execute-links/slot76
+SLOT77_EXECUTE = /var/condor/.execute-links/slot77
+SLOT78_EXECUTE = /var/condor/.execute-links/slot78
+SLOT79_EXECUTE = /var/condor/.execute-links/slot79
+SLOT80_EXECUTE = /var/condor/.execute-links/slot80
+SLOT81_EXECUTE = /var/condor/.execute-links/slot81
+SLOT82_EXECUTE = /var/condor/.execute-links/slot82
+SLOT83_EXECUTE = /var/condor/.execute-links/slot83
+SLOT84_EXECUTE = /var/condor/.execute-links/slot84
+SLOT85_EXECUTE = /var/condor/.execute-links/slot85
+SLOT86_EXECUTE = /var/condor/.execute-links/slot86
+SLOT87_EXECUTE = /var/condor/.execute-links/slot87
+SLOT88_EXECUTE = /var/condor/.execute-links/slot88
+SLOT89_EXECUTE = /var/condor/.execute-links/slot89
+SLOT90_EXECUTE = /var/condor/.execute-links/slot90
+SLOT91_EXECUTE = /var/condor/.execute-links/slot91
+SLOT92_EXECUTE = /var/condor/.execute-links/slot92
+SLOT93_EXECUTE = /var/condor/.execute-links/slot93
+SLOT94_EXECUTE = /var/condor/.execute-links/slot94
+SLOT95_EXECUTE = /var/condor/.execute-links/slot95
+SLOT96_EXECUTE = /var/condor/.execute-links/slot96
+SLOT97_EXECUTE = /var/condor/.execute-links/slot97
+SLOT98_EXECUTE = /var/condor/.execute-links/slot98
+SLOT99_EXECUTE = /var/condor/.execute-links/slot99
+SLOT100_EXECUTE = /var/condor/.execute-links/slot100
+SLOT101_EXECUTE = /var/condor/.execute-links/slot101
+SLOT102_EXECUTE = /var/condor/.execute-links/slot102
+SLOT103_EXECUTE = /var/condor/.execute-links/slot103
+SLOT104_EXECUTE = /var/condor/.execute-links/slot104
+SLOT105_EXECUTE = /var/condor/.execute-links/slot105
+SLOT106_EXECUTE = /var/condor/.execute-links/slot106
+SLOT107_EXECUTE = /var/condor/.execute-links/slot107
+SLOT108_EXECUTE = /var/condor/.execute-links/slot108
+SLOT109_EXECUTE = /var/condor/.execute-links/slot109
+SLOT110_EXECUTE = /var/condor/.execute-links/slot110
+SLOT111_EXECUTE = /var/condor/.execute-links/slot111
+SLOT112_EXECUTE = /var/condor/.execute-links/slot112
+SLOT113_EXECUTE = /var/condor/.execute-links/slot113
+SLOT114_EXECUTE = /var/condor/.execute-links/slot114
+SLOT115_EXECUTE = /var/condor/.execute-links/slot115
+SLOT116_EXECUTE = /var/condor/.execute-links/slot116
+SLOT117_EXECUTE = /var/condor/.execute-links/slot117
+SLOT118_EXECUTE = /var/condor/.execute-links/slot118
+SLOT119_EXECUTE = /var/condor/.execute-links/slot119
+SLOT120_EXECUTE = /var/condor/.execute-links/slot120
+SLOT121_EXECUTE = /var/condor/.execute-links/slot121
+SLOT122_EXECUTE = /var/condor/.execute-links/slot122
+SLOT123_EXECUTE = /var/condor/.execute-links/slot123
+SLOT124_EXECUTE = /var/condor/.execute-links/slot124
+SLOT125_EXECUTE = /var/condor/.execute-links/slot125
+SLOT126_EXECUTE = /var/condor/.execute-links/slot126
+SLOT127_EXECUTE = /var/condor/.execute-links/slot127
+SLOT128_EXECUTE = /var/condor/.execute-links/slot128
+
+# Dan: 2012-03-19: testing with condor_master using procd
+MASTER.USE_PROCD = true
+RESTART_PROCD_ON_ERROR = TRUE
+
+# speed up farmout (default was 5)
+DAGMAN_MAX_SUBMITS_PER_INTERVAL = 15
+
+STATISTICS_TO_PUBLISH = SCHEDD:1 TRANSFER:2
+
+# 2013-08-17: workaround for bug in 8.0.1
+SERVICE_COMMAND_SOCKET_MAX_SOCKET_INDEX = -1
+
+GROUP_NAMES = group_cmsprod group_cmspilot group_uscmspilot
+
+# cmsprod should get 50% of CMS T2 slots
+# cmsprio should get 40% of CMS T2 slots
+# Use following query to see all T2 slots:
+# condor_status -const 'Site == "HEP" && IsGeneralPurposeSlot && IsLocalCMSSlot =!= true'
+# As of 05/20/2020, there are 13500 T2 slots
+#GROUP_QUOTA_group_cmsprod = 2000
+GROUP_QUOTA_group_cmspilot = 14000
+GROUP_QUOTA_group_uscmspilot = 500
+# allow cmsprod to negotiate in final matchmaking round
+GROUP_AUTOREGROUP_group_cmsprod = true
+GROUP_AUTOREGROUP_group_cmspilot = true
+# work around a bug (?) in 9.0.3 that causes the above per-group AUTOREGROUP settings to be ignored
+GROUP_AUTOREGROUP = true
+
+NEGOTIATOR_SLOT_POOLSIZE_CONSTRAINT = IsGeneralPurposeSlot =!= False
+
+# Benchmarks do not get run if the machine is always in the Owner
+# state.  This results in Kflops never getting set, which makes some
+# rank expressions fail.
+IsOwner = False
+
+# BANNED USERS:
+
+# 2015-06-24: vetsigian@submit-5.chtc.wisc.edu is running large memory jobs
+START = ($(START)) && TARGET.USER =!= "vetsigian@submit-5.chtc.wisc.edu"
+PREEMPT = ($(PREEMPT)) || TARGET.USER =?= "vetsigian@submit-5.chtc.wisc.edu"
+
+# 2014-01-21: nakajima@submit.chtc.wisc.edu is running huge memory jobs
+#START = ($(START)) && TARGET.USER =!= "nakajima@submit.chtc.wisc.edu"
+#PREEMPT = ($(PREEMPT)) || TARGET.USER =?= "nakajima@submit.chtc.wisc.edu"
+
+# condor 8.2.7 rpm puts this file in a non-default location:
+SSH_TO_JOB_SSHD_CONFIG_TEMPLATE = /etc/condor/condor_ssh_to_job_sshd_config_template
+
+# Do not let jobs write to the system /tmp or /var/tmp.
+# They will write to their own scratch directory instead.
+MOUNT_UNDER_SCRATCH = /tmp,/var/tmp
+
+# Override new default in 8.4.  We might want graceful removal eventually,
+# but the problem right now is that farmout jobs going on hold copy back
+# large user_code.tgz and potentially other unwanted files.
+GRACEFULLY_REMOVE_JOBS = False
+
+# increase limit from default of 200 to 500 to allow larger number of farmout
+# dag within dag submissions to run without getting deadlocked
+START_SCHEDULER_UNIVERSE = TotalSchedulerJobsRunning < 500
+
+# As of 8.4.2, it is recommended to set this to False.
+# The condor team says they will make this the default.
+# The reason this is necessary, is that
+# ENABLE_USERLOG_LOCKING=False by default now,
+# and dagman refuses to operate, even though it is
+# now considered safe to do so.
+DAGMAN_LOG_ON_NFS_IS_ERROR = False
+
+# Avoid problem of 1-cpu job preempting multi-cpu dynamic slot
+# and claiming that whole slot.  Instead, preempt the dynamic slot
+# and carve out just what it needs for a new dynamic slot.
+ALLOW_PSLOT_PREEMPTION = True
+
+# Do not enable IPv6 on the whole cluster (especially submit nodes)
+# until all pools we flock to support IPv6
+#ENABLE_IPV6 = True
+
+# Workaround for GlobalJobId becoming a significant attribute in CHTC by mistake:
+REMOVE_SIGNIFICANT_ATTRIBUTES = GlobalJobId
+
+# Allow condor to assume that each job running as a cndrusr account
+# is using a different account from all others on the machine.
+DEDICATED_EXECUTE_ACCOUNT_REGEXP = cndrusr[0-9]+
+
+# The login shell for anonymous is /bin/nologin, which makes condor_ssh_to_job fail,
+# so use cndrusr accounts instead.
+SLOT1_USER = cndrusr1
+SLOT2_USER = cndrusr2
+SLOT3_USER = cndrusr3
+SLOT4_USER = cndrusr4
+SLOT5_USER = cndrusr5
+SLOT6_USER = cndrusr6
+SLOT7_USER = cndrusr7
+SLOT8_USER = cndrusr8
+SLOT9_USER = cndrusr9
+SLOT10_USER = cndrusr10
+SLOT11_USER = cndrusr11
+SLOT12_USER = cndrusr12
+SLOT13_USER = cndrusr13
+SLOT14_USER = cndrusr14
+SLOT15_USER = cndrusr15
+SLOT16_USER = cndrusr16
+SLOT17_USER = cndrusr17
+SLOT18_USER = cndrusr18
+SLOT19_USER = cndrusr19
+SLOT20_USER = cndrusr20
+SLOT21_USER = cndrusr21
+SLOT22_USER = cndrusr22
+SLOT23_USER = cndrusr23
+SLOT24_USER = cndrusr24
+SLOT25_USER = cndrusr25
+SLOT26_USER = cndrusr26
+SLOT27_USER = cndrusr27
+SLOT28_USER = cndrusr28
+SLOT29_USER = cndrusr29
+SLOT30_USER = cndrusr30
+SLOT31_USER = cndrusr31
+SLOT32_USER = cndrusr32
+SLOT33_USER = cndrusr33
+SLOT34_USER = cndrusr34
+SLOT35_USER = cndrusr35
+SLOT36_USER = cndrusr36
+SLOT37_USER = cndrusr37
+SLOT38_USER = cndrusr38
+SLOT39_USER = cndrusr39
+SLOT40_USER = cndrusr40
+SLOT41_USER = cndrusr41
+SLOT42_USER = cndrusr42
+SLOT43_USER = cndrusr43
+SLOT44_USER = cndrusr44
+SLOT45_USER = cndrusr45
+SLOT46_USER = cndrusr46
+SLOT47_USER = cndrusr47
+SLOT48_USER = cndrusr48
+SLOT49_USER = cndrusr49
+SLOT50_USER = cndrusr50
+SLOT51_USER = cndrusr51
+SLOT52_USER = cndrusr52
+SLOT53_USER = cndrusr53
+SLOT54_USER = cndrusr54
+SLOT55_USER = cndrusr55
+SLOT56_USER = cndrusr56
+SLOT57_USER = cndrusr57
+SLOT58_USER = cndrusr58
+SLOT59_USER = cndrusr59
+SLOT60_USER = cndrusr60
+SLOT61_USER = cndrusr61
+SLOT62_USER = cndrusr62
+SLOT63_USER = cndrusr63
+SLOT64_USER = cndrusr64
+SLOT65_USER = cndrusr65
+SLOT66_USER = cndrusr66
+SLOT67_USER = cndrusr67
+SLOT68_USER = cndrusr68
+SLOT69_USER = cndrusr69
+SLOT70_USER = cndrusr70
+SLOT71_USER = cndrusr71
+SLOT72_USER = cndrusr72
+SLOT73_USER = cndrusr73
+SLOT74_USER = cndrusr74
+SLOT75_USER = cndrusr75
+SLOT76_USER = cndrusr76
+SLOT77_USER = cndrusr77
+SLOT78_USER = cndrusr78
+SLOT79_USER = cndrusr79
+SLOT80_USER = cndrusr80
+SLOT81_USER = cndrusr81
+SLOT82_USER = cndrusr82
+SLOT83_USER = cndrusr83
+SLOT84_USER = cndrusr84
+SLOT85_USER = cndrusr85
+SLOT86_USER = cndrusr86
+SLOT87_USER = cndrusr87
+SLOT88_USER = cndrusr88
+SLOT89_USER = cndrusr89
+SLOT90_USER = cndrusr90
+SLOT91_USER = cndrusr91
+SLOT92_USER = cndrusr92
+SLOT93_USER = cndrusr93
+SLOT94_USER = cndrusr94
+SLOT95_USER = cndrusr95
+SLOT96_USER = cndrusr96
+SLOT97_USER = cndrusr97
+SLOT98_USER = cndrusr98
+SLOT99_USER = cndrusr99
+SLOT100_USER = cndrusr100
+
+SLOT1_1_USER = cndrusr1
+SLOT1_2_USER = cndrusr2
+SLOT1_3_USER = cndrusr3
+SLOT1_4_USER = cndrusr4
+SLOT1_5_USER = cndrusr5
+SLOT1_6_USER = cndrusr6
+SLOT1_7_USER = cndrusr7
+SLOT1_8_USER = cndrusr8
+SLOT1_9_USER = cndrusr9
+SLOT1_10_USER = cndrusr10
+SLOT1_11_USER = cndrusr11
+SLOT1_12_USER = cndrusr12
+SLOT1_13_USER = cndrusr13
+SLOT1_14_USER = cndrusr14
+SLOT1_15_USER = cndrusr15
+SLOT1_16_USER = cndrusr16
+SLOT1_17_USER = cndrusr17
+SLOT1_18_USER = cndrusr18
+SLOT1_19_USER = cndrusr19
+SLOT1_20_USER = cndrusr20
+SLOT1_21_USER = cndrusr21
+SLOT1_22_USER = cndrusr22
+SLOT1_23_USER = cndrusr23
+SLOT1_24_USER = cndrusr24
+SLOT1_25_USER = cndrusr25
+SLOT1_26_USER = cndrusr26
+SLOT1_27_USER = cndrusr27
+SLOT1_28_USER = cndrusr28
+SLOT1_29_USER = cndrusr29
+SLOT1_30_USER = cndrusr30
+SLOT1_31_USER = cndrusr31
+SLOT1_32_USER = cndrusr32
+SLOT1_33_USER = cndrusr33
+SLOT1_34_USER = cndrusr34
+SLOT1_35_USER = cndrusr35
+SLOT1_36_USER = cndrusr36
+SLOT1_37_USER = cndrusr37
+SLOT1_38_USER = cndrusr38
+SLOT1_39_USER = cndrusr39
+SLOT1_40_USER = cndrusr40
+SLOT1_41_USER = cndrusr41
+SLOT1_42_USER = cndrusr42
+SLOT1_43_USER = cndrusr43
+SLOT1_44_USER = cndrusr44
+SLOT1_45_USER = cndrusr45
+SLOT1_46_USER = cndrusr46
+SLOT1_47_USER = cndrusr47
+SLOT1_48_USER = cndrusr48
+SLOT1_49_USER = cndrusr49
+SLOT1_50_USER = cndrusr50
+SLOT1_51_USER = cndrusr51
+SLOT1_52_USER = cndrusr52
+SLOT1_53_USER = cndrusr53
+SLOT1_54_USER = cndrusr54
+SLOT1_55_USER = cndrusr55
+SLOT1_56_USER = cndrusr56
+SLOT1_57_USER = cndrusr57
+SLOT1_58_USER = cndrusr58
+SLOT1_59_USER = cndrusr59
+SLOT1_60_USER = cndrusr60
+SLOT1_61_USER = cndrusr61
+SLOT1_62_USER = cndrusr62
+SLOT1_63_USER = cndrusr63
+SLOT1_64_USER = cndrusr64
+SLOT1_65_USER = cndrusr65
+SLOT1_66_USER = cndrusr66
+SLOT1_67_USER = cndrusr67
+SLOT1_68_USER = cndrusr68
+SLOT1_69_USER = cndrusr69
+SLOT1_70_USER = cndrusr70
+SLOT1_71_USER = cndrusr71
+SLOT1_72_USER = cndrusr72
+SLOT1_73_USER = cndrusr73
+SLOT1_74_USER = cndrusr74
+SLOT1_75_USER = cndrusr75
+SLOT1_76_USER = cndrusr76
+SLOT1_77_USER = cndrusr77
+SLOT1_78_USER = cndrusr78
+SLOT1_79_USER = cndrusr79
+SLOT1_80_USER = cndrusr80
+SLOT1_81_USER = cndrusr81
+SLOT1_82_USER = cndrusr82
+SLOT1_83_USER = cndrusr83
+SLOT1_84_USER = cndrusr84
+SLOT1_85_USER = cndrusr85
+SLOT1_86_USER = cndrusr86
+SLOT1_87_USER = cndrusr87
+SLOT1_88_USER = cndrusr88
+SLOT1_89_USER = cndrusr89
+SLOT1_90_USER = cndrusr90
+SLOT1_91_USER = cndrusr91
+SLOT1_92_USER = cndrusr92
+SLOT1_93_USER = cndrusr93
+SLOT1_94_USER = cndrusr94
+SLOT1_95_USER = cndrusr95
+SLOT1_96_USER = cndrusr96
+SLOT1_97_USER = cndrusr97
+SLOT1_98_USER = cndrusr98
+SLOT1_99_USER = cndrusr99
+SLOT1_100_USER = cndrusr100
+
+BASE_CGROUP = /system.slice/condor.service
+
+CGROUP_MEMORY_LIMIT_POLICY = hard
+DISABLE_SWAP_FOR_JOB = TRUE
+PROPORTIONAL_SWAP_ASSSIGNMENT = true
+
+# cwseys 2019/10/04 - when CGROUP_MEMORY_LIMIT_POLICY is set, condor sets cgroup attribute cpu.shares
+# to 100*Cpus (ClassAd).  This limits the slot to use a fraction of the system CPUs only
+# when there is contention for CPUs. (Fraction is Cpus/Machine Cpus)  Otherwise idle CPUs
+# can be used opportunistically.
+ASSIGN_CPU_AFFINITY = False
+
+# cwseys 2019/06/25 - processes which are heavily io (like pwhg and cmsgridrun) cause
+# the rest of the computer processes (like puppet, ssh) to be balky and have time outs.
+# renice both cpu and io to be nicer.  (Note, need block scheduler like cfq for io nice
+# to have an effect.)
+# Because ionice is related to cpu nice, the processes with cpu nice 19 end up with
+# "best effort" level 4, e.g. :
+# ionice -p PID
+# unknown: prio 4
+JOB_RENICE_INCREMENT = 19
+
+# Configuration required by CHTC so that jobs with IsBuildJob=True (used for compiling matlab) will match.
+JOB_TRANSFORM_BUILD @= end
+  REQUIREMENTS IsBuildJob
+  if defined MY.ConcurrencyLimits
+    SET ConcurrencyLimits "$(MY.ConcurrencyLimits),Build_$(MY.Owner)"
+  else
+    SET ConcurrencyLimits "Build_$(MY.Owner)"
+  endif
+    SET Requirements (TARGET.IsBuildSlot =?= true) && $(MY.Requirements)
+    SET AcctGroup "fastmatch"
+    SET AcctGroupUser "$(MY.Owner)"
+    SET AccountingGroup "fastmatch.$(MY.Owner)"
+@end
+JOB_TRANSFORM_NAMES = $(JOB_TRANSFORM_NAMES) BUILD
+
+# require the local config file to exist (apparently, OSG is setting this to False in condor_config)
+REQUIRE_LOCAL_CONFIG_FILE = True
+
+# for flocking to glidein.chtc.wisc.edu
+SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION=True
+# work around a problem observed in 8.8.11 causing file transfer failure when SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION=True
+SHADOW.ALLOW_WRITE = execute-side@matchsession $(ALLOW_WRITE)
+
+SINGULARITY_JOB = !isUndefined(TARGET.SingularityImage)
+SINGULARITY_IMAGE_EXPR = TARGET.SingularityImage
+HasSingularityJobStart = True
+STARTD_ATTRS = $(STARTD_ATTRS), HasSingularityJobStart
