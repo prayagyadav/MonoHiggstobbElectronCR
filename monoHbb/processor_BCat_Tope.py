@@ -983,7 +983,11 @@ class monoHbbProcessor(processor.ProcessorABC):
                 output['Mbb'].fill(dataset=dataset, met_region=recoilregion, mass=ak.flatten(AK8jets.msoftdrop[selection.all(evtSels) & selection2.all(recoilregion)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels) & selection2.all(recoilregion)] )
                 #Defined by Prayag
                 output['debug_Mbb'].fill(debug="withoutvetos",dataset=dataset, met_region=recoilregion, mass=ak.flatten(AK8jets.msoftdrop[selection.all(evtSels_withoutvetos) & selection2.all(recoilregion)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_withoutvetos) & selection2.all(recoilregion)] )
-                output['debug_Mbb'].fill(debug="minusHEM",dataset=dataset, met_region=recoilregion, mass=ak.flatten(AK8jets.msoftdrop[selection.all(evtSels_minusHEM) & selection2.all(recoilregion)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_minusHEM) & selection2.all(recoilregion)] )               
+                output['debug_Mbb'].fill(debug="minusHEM",dataset=dataset, met_region=recoilregion, mass=ak.flatten(AK8jets.msoftdrop[selection.all(evtSels_minusHEM) & selection2.all(recoilregion)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_minusHEM) & selection2.all(recoilregion)] )
+
+            #Defined by Prayag
+            
+
             # MET Recoil and HT: pt and phi
             output['MET_pT'].fill(dataset=dataset, met=ak.flatten(corr_MET_pt[selection.all(evtSels)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels)])
             output['MET_Phi'].fill(dataset=dataset, phi=ak.flatten(corr_MET_phi[selection.all(evtSels)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels)])
