@@ -608,38 +608,49 @@ class monoHbbProcessor(processor.ProcessorABC):
         BCat_Tope_CR = {
             "metTrigger",
             "electronTrigger",
+            "NAK8Jet=1",
             "NisoaddAK4j<=2",
             "Nisoloosebjet=1", 
             "NtightElectron=1",
             "NlooseMuons=0",
             "MET>50GeV",
             "Recoil_eTopCR>250GeV",
-            "NAK8Jet=1",
-            
             "metFilters",
             "Ntaus=0",
             "Nphotons=0",
             "HEM_veto"
-        }        
+            }        
         selection.add("BoostedCatSels_CR_Tope", selection.all(*BCat_Tope_CR))
 
+        #Defined by Prayag
         BCat_Tope_CR_withoutvetos = {
             "metTrigger",
             "electronTrigger",
             "NAK8Jet=1",
             "NisoaddAK4j<=2",
-            "Nisoloosebjet=1",
+            "Nisoloosebjet=1", 
             "NtightElectron=1",
+            "NlooseMuons=0",
             "MET>50GeV",
             "Recoil_eTopCR>250GeV",
+            }        
+        selection.add("BoostedCatSels_CR_Tope_withoutvetos", selection.all(*BCat_Tope_CR_withoutvetos))
+
+        BCat_Tope_CR_minusHEM = {
+            "metTrigger",
+            "electronTrigger",
+            "NAK8Jet=1",
+            "NisoaddAK4j<=2",
+            "Nisoloosebjet=1", 
+            "NtightElectron=1",
             "NlooseMuons=0",
-            
-            
-            
-            
-            
-        }        
-        selection.add("BoostedCatSels_CR_Tope", selection.all(*BCat_Tope_CR))
+            "MET>50GeV",
+            "Recoil_eTopCR>250GeV",
+            "metFilters",
+            "Ntaus=0",
+            "Nphotons=0",
+            }        
+        selection.add("BoostedCatSels_CR_Tope_minusHEM", selection.all(*BCat_Tope_CR_minusHEM))
 
         #For Mbb distribution
         #BCat recoil regions for CR - Tope
@@ -648,7 +659,19 @@ class monoHbbProcessor(processor.ProcessorABC):
         selection2.add("recoilTopeCR350_500", (Recoil_eTopCR.pt>350) & (Recoil_eTopCR.pt<=500))
         selection2.add("recoilTopeCR500_1000", (Recoil_eTopCR.pt>500) & (Recoil_eTopCR.pt<=1000))
 
-        BCat_Tope_CR_AK8only = {"metTrigger","electronTrigger", "metFilters", "HEM_veto", "Ntaus=0", "Nphotons=0", "NtightElectron=1", "NlooseMuons=0", "MET>50GeV", "Recoil_eTopCR>250GeV", "NAK8Jet=1"}
+        BCat_Tope_CR_AK8only = {
+            "metTrigger",
+            "electronTrigger",
+            "NAK8Jet=1"
+            "NtightElectron=1",
+            "NlooseMuons=0",
+            "MET>50GeV",
+            "Recoil_eTopCR>250GeV",
+            "metFilters",
+            "Ntaus=0",
+            "Nphotons=0",
+            "HEM_veto",
+            }
         selection.add("BoostedCatSels_CR_Tope_AK8only", selection.all(*BCat_Tope_CR_AK8only))    
 
         ######################
@@ -913,7 +936,8 @@ class monoHbbProcessor(processor.ProcessorABC):
 
         evtSels = "BoostedCatSels_CR_Tope"
         #defined by Prayag
-        evtSels_withoutvetos = ""
+        evtSels_withoutvetos = "BoostedCatSels_CR_Tope_withoutvetos"
+        evtSels_minusHEM = "BoostedCatSels_CR_Tope_minusHEM"
 
         systList = []
         if(self.isMC):         
@@ -957,7 +981,9 @@ class monoHbbProcessor(processor.ProcessorABC):
             recoil_regions = ["recoilTopeCR250_350", "recoilTopeCR350_500", "recoilTopeCR500_1000",]                
             for recoilregion in recoil_regions:                
                 output['Mbb'].fill(dataset=dataset, met_region=recoilregion, mass=ak.flatten(AK8jets.msoftdrop[selection.all(evtSels) & selection2.all(recoilregion)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels) & selection2.all(recoilregion)] )
-                
+                #Defined by Prayag
+                output['debug_Mbb'].fill(debug="withoutvetos",dataset=dataset, met_region=recoilregion, mass=ak.flatten(AK8jets.msoftdrop[selection.all(evtSels_withoutvetos) & selection2.all(recoilregion)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_withoutvetos) & selection2.all(recoilregion)] )
+                output['debug_Mbb'].fill(debug="minusHEM",dataset=dataset, met_region=recoilregion, mass=ak.flatten(AK8jets.msoftdrop[selection.all(evtSels_minusHEM) & selection2.all(recoilregion)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_minusHEM) & selection2.all(recoilregion)] )               
             # MET Recoil and HT: pt and phi
             output['MET_pT'].fill(dataset=dataset, met=ak.flatten(corr_MET_pt[selection.all(evtSels)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels)])
             output['MET_Phi'].fill(dataset=dataset, phi=ak.flatten(corr_MET_phi[selection.all(evtSels)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels)])
