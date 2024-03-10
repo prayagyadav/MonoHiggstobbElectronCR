@@ -985,8 +985,34 @@ class monoHbbProcessor(processor.ProcessorABC):
                 output['debug_Mbb'].fill(debug="withoutvetos",dataset=dataset, met_region=recoilregion, mass=ak.flatten(AK8jets.msoftdrop[selection.all(evtSels_withoutvetos) & selection2.all(recoilregion)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_withoutvetos) & selection2.all(recoilregion)] )
                 output['debug_Mbb'].fill(debug="minusHEM",dataset=dataset, met_region=recoilregion, mass=ak.flatten(AK8jets.msoftdrop[selection.all(evtSels_minusHEM) & selection2.all(recoilregion)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_minusHEM) & selection2.all(recoilregion)] )
 
-            #Defined by Prayag
+            #Defined by Prayag ##########################
+            output['debug_MET_pT'].fill(debug="withoutvetos", dataset=dataset, met=ak.flatten(corr_MET_pt[selection.all(evtSels_withoutvetos)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_withoutvetos)])
+            output['debug_MET_pT'].fill(debug="minusHEM", dataset=dataset, met=ak.flatten(corr_MET_pt[selection.all(evtSels_minusHEM)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_minusHEM)])
+            output['debug_MET_Phi'].fill(debug="withoutvetos", dataset=dataset, phi=ak.flatten(corr_MET_phi[selection.all(evtSels_withoutvetos)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_withoutvetos)])
+            output['debug_MET_Phi'].fill(debug="minusHEM", dataset=dataset, phi=ak.flatten(corr_MET_phi[selection.all(evtSels_minusHEM)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_minusHEM)])
+            output['debug_Recoil'].fill(debug="withoutvetos", dataset=dataset, recoil=Recoil_eTopCR.pt[selection.all(evtSels_withoutvetos)], systematic=syst, weight=evtWeight[selection.all(evtSels_withoutvetos)])
+            output['debug_Recoil'].fill(debug="minusHEM", dataset=dataset, recoil=Recoil_eTopCR.pt[selection.all(evtSels_minusHEM)], systematic=syst, weight=evtWeight[selection.all(evtSels_minusHEM)])
+            output['debug_Recoil_Phi'].fill(debug="withoutvetos", dataset=dataset, phi=Recoil_eTopCR.phi[selection.all(evtSels_withoutvetos)], systematic=syst, weight=evtWeight[selection.all(evtSels_withoutvetos)])
+            output['debug_Recoil_Phi'].fill(debug="minusHEM", dataset=dataset, phi=Recoil_eTopCR.phi[selection.all(evtSels_minusHEM)], systematic=syst, weight=evtWeight[selection.all(evtSels_minusHEM)])
+
+            output['debug_Electron_pT'].fill(debug="withoutvetos", dataset=dataset, pt=ak.flatten(tightElectrons.pt[selection.all(evtSels_withoutvetos)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_withoutvetos)])
+            output['debug_Electron_pT'].fill(debug="minusHEM", dataset=dataset, pt=ak.flatten(tightElectrons.pt[selection.all(evtSels_minusHEM)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_minusHEM)])
+            output['debug_Electron_Eta'].fill(debug="withoutvetos", dataset=dataset, eta=ak.flatten(tightElectrons.eta[selection.all(evtSels_withoutvetos)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_withoutvetos)])
+            output['debug_Electron_Eta'].fill(debug="minusHEM", dataset=dataset, eta=ak.flatten(tightElectrons.eta[selection.all(evtSels_minusHEM)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_minusHEM)])
+            output['debug_Electron_Phi'].fill(debug="withoutvetos", dataset=dataset, phi=ak.flatten(tightElectrons.phi[selection.all(evtSels_withoutvetos)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_withoutvetos)])
+            output['debug_Electron_Phi'].fill(debug="minusHEM", dataset=dataset, phi=ak.flatten(tightElectrons.phi[selection.all(evtSels_minusHEM)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_minusHEM)])
+            output['debug_Electron_M'].fill(debug="withoutvetos", dataset=dataset, jmass=ak.flatten(tightElectrons.mass[selection.all(evtSels_withoutvetos)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_withoutvetos)])
+            output['debug_Electron_M'].fill(debug="minusHEM", dataset=dataset, jmass=ak.flatten(tightElectrons.mass[selection.all(evtSels_minusHEM)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_minusHEM)])
             
+            output['debug_FJet_pT'].fill(debug="withoutvetos", dataset=dataset, pt=ak.flatten(AK8jets.pt[selection.all(evtSels_withoutvetos)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_withoutvetos)])
+            output['debug_FJet_pT'].fill(debug="minusHEM", dataset=dataset, pt=ak.flatten(AK8jets.pt[selection.all(evtSels_minusHEM)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_minusHEM)])
+            output['debug_FJet_Eta'].fill(debug="withoutvetos", dataset=dataset, eta=ak.flatten(AK8jets.eta[selection.all(evtSels_withoutvetos)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_withoutvetos)])
+            output['debug_FJet_Eta'].fill(debug="minusHEM", dataset=dataset, eta=ak.flatten(AK8jets.eta[selection.all(evtSels_minusHEM)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_minusHEM)])
+            output['debug_FJet_Phi'].fill(debug="withoutvetos", dataset=dataset, phi=ak.flatten(AK8jets.phi[selection.all(evtSels_withoutvetos)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_withoutvetos)])
+            output['debug_FJet_Phi'].fill(debug="minusHEM", dataset=dataset, phi=ak.flatten(AK8jets.phi[selection.all(evtSels_minusHEM)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_minusHEM)])
+            output['debug_FJet_Msd'].fill(debug="withoutvetos", dataset=dataset, jmass=ak.flatten(AK8jets.msoftdrop[selection.all(evtSels_withoutvetos)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_withoutvetos)])
+            output['debug_FJet_Msd'].fill(debug="minusHEM", dataset=dataset, jmass=ak.flatten(AK8jets.msoftdrop[selection.all(evtSels_minusHEM)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels_minusHEM)])
+            #############################################
 
             # MET Recoil and HT: pt and phi
             output['MET_pT'].fill(dataset=dataset, met=ak.flatten(corr_MET_pt[selection.all(evtSels)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSels)])
