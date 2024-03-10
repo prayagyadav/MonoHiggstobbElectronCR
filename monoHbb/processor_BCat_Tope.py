@@ -210,6 +210,12 @@ class monoHbbProcessor(processor.ProcessorABC):
         area_axis = hist.axis.Regular(100, 0, 5.0, name="area", label=r"FatJet Area")
         tau_axis = hist.axis.Regular(20, 0., 1.0, name="tau", label=r"Nsubjettiness Tau-")
         nNbeta1_axis = hist.axis.Regular(20, 0., 1.0, name="nNbeta1", label=r"subjettiness nNbeta1, with N-")
+
+        ####################
+        #Defined by prayag
+        #Categories
+        debug_axis = hist.axis.StrCategory([], growth=True, name="debug",label="Debug")
+        ####################
         
         #print("line 213/957")
         # Accumulator for holding histograms
@@ -303,7 +309,30 @@ class monoHbbProcessor(processor.ProcessorABC):
             "FJet_particleNet_HbbvsQCD_BCatMinus2": hist.Hist(dataset_axis, btag_axis, systematic_axis, label="Events"), 
             "FJet_TauN_BCatMinus2": hist.Hist(dataset_axis, labelname_axis, tau_axis, systematic_axis, label="Events"),
             "FJet_TauNM_BCatMinus2": hist.Hist(dataset_axis, labelname_axis, tau_axis, systematic_axis, label="Events"),
-            "FJet_n2b1_n3b1_BCatMinus2": hist.Hist(dataset_axis, labelname_axis, nNbeta1_axis, systematic_axis, label="Events"),            
+            "FJet_n2b1_n3b1_BCatMinus2": hist.Hist(dataset_axis, labelname_axis, nNbeta1_axis, systematic_axis, label="Events"),  
+
+            #####################
+            #Defined by prayag
+            "debug_Cutflow_BCat_CRTope" : hist.Hist(debug_axis, dataset_axis, cut_axis, label="Events"),
+
+            "debug_Mbb": hist.Hist(debug_axis, dataset_axis, met_region_axis, mass_axis, systematic_axis, label="Events"),
+
+            "debug_MET_pT" : hist.Hist(debug_axis, dataset_axis, met_pt_axis, systematic_axis, label="Events"),
+            "debug_MET_Phi" : hist.Hist(debug_axis, dataset_axis, phi_axis, systematic_axis, label="Events"),
+            "debug_Recoil": hist.Hist(debug_axis, dataset_axis, recoil_axis, systematic_axis, label="Events"),
+            "debug_Recoil_Phi": hist.Hist(debug_axis, dataset_axis, phi_axis, systematic_axis, label="Events"),
+
+            "debug_FJet_pT": hist.Hist(debug_axis, dataset_axis, pt_axis, systematic_axis, label="Events"),
+            "debug_FJet_Eta": hist.Hist(debug_axis, dataset_axis, eta_axis, systematic_axis, label="Events"),
+            "debug_FJet_Phi": hist.Hist(debug_axis, dataset_axis, phi_axis, systematic_axis, label="Events"),
+            "debug_FJet_Msd": hist.Hist(debug_axis, dataset_axis, jmass_axis, systematic_axis, label="Events"),
+
+            "debug_Electron_pT": hist.Hist(debug_axis, dataset_axis, pt_axis, systematic_axis, label="Events"),
+            "debug_Electron_Eta": hist.Hist(debug_axis, dataset_axis, eta_axis, systematic_axis, label="Events"),
+            "debug_Electron_Phi": hist.Hist(debug_axis, dataset_axis, phi_axis, systematic_axis, label="Events"),
+            "debug_Electron_M": hist.Hist(debug_axis, dataset_axis, jmass_axis, systematic_axis, label="Events"),
+
+            #####################
             
         }
 
@@ -495,10 +524,6 @@ class monoHbbProcessor(processor.ProcessorABC):
         ##################
         # HEM cleaning
         ##################
-        output['debug_ak4_eta_be4'] = hist.Hist.new.Reg(20,-3,3).Double().fill(ak.flatten(events.Jet.eta))
-        output['debug_ak4_phi_be4'] = hist.Hist.new.Reg(20,-3.14,3.14).Double().fill(ak.flatten(events.Jet.phi))
-        output['debug_ak8_eta_be4'] = hist.Hist.new.Reg(20,-3,3).Double().fill(ak.flatten(events.FatJet.eta))
-        output['debug_ak8_phi_be4'] = hist.Hist.new.Reg(20,-3.14,3.14).Double().fill(ak.flatten(events.FatJet.phi))
         # veto events if any jet (ak4 or ak8) present in HEM affected region
         if era == 2017:
             HEM_cut = np.ones(len(events.MET.pt), dtype=bool)
@@ -511,12 +536,6 @@ class monoHbbProcessor(processor.ProcessorABC):
                 HEM_cut_ak4 = jerjesCorrection.HEM_veto(isMC=self.isMC, nrun=np.ones(len(events)), HEMaffected=HEM_MCbool, obj=AK4jets)
                 HEM_cut_ak8 = jerjesCorrection.HEM_veto(isMC=self.isMC, nrun=np.ones(len(events)), HEMaffected=HEM_MCbool, obj=AK8jets)
                 HEM_cut = (HEM_cut_ak4) & (HEM_cut_ak8)
-
-        temp_events = events[HEM_cut]
-        output['debug_ak4_eta_after'] = hist.Hist.new.Reg(20,-3,3).Double().fill(ak.flatten(temp_events.Jet.eta))
-        output['debug_ak4_phi_after'] = hist.Hist.new.Reg(20,-3.14,3.14).Double().fill(ak.flatten(temp_events.Jet.phi))
-        output['debug_ak8_eta_after'] = hist.Hist.new.Reg(20,-3,3).Double().fill(ak.flatten(temp_events.FatJet.eta))
-        output['debug_ak8_phi_after'] = hist.Hist.new.Reg(20,-3.14,3.14).Double().fill(ak.flatten(temp_events.FatJet.phi))
 
         ##################
         # EVENT VARIABLES
@@ -588,17 +607,37 @@ class monoHbbProcessor(processor.ProcessorABC):
 
         BCat_Tope_CR = {
             "metTrigger",
-            "metFilters",
-            "HEM_veto",
-            "Ntaus=0",
-            "Nphotons=0",
+            "electronTrigger",
+            "NisoaddAK4j<=2",
+            "Nisoloosebjet=1", 
             "NtightElectron=1",
             "NlooseMuons=0",
             "MET>50GeV",
             "Recoil_eTopCR>250GeV",
             "NAK8Jet=1",
+            
+            "metFilters",
+            "Ntaus=0",
+            "Nphotons=0",
+            "HEM_veto"
+        }        
+        selection.add("BoostedCatSels_CR_Tope", selection.all(*BCat_Tope_CR))
+
+        BCat_Tope_CR_withoutvetos = {
+            "metTrigger",
+            "electronTrigger",
+            "NAK8Jet=1",
             "NisoaddAK4j<=2",
             "Nisoloosebjet=1",
+            "NtightElectron=1",
+            "MET>50GeV",
+            "Recoil_eTopCR>250GeV",
+            "NlooseMuons=0",
+            
+            
+            
+            
+            
         }        
         selection.add("BoostedCatSels_CR_Tope", selection.all(*BCat_Tope_CR))
 
@@ -620,20 +659,64 @@ class monoHbbProcessor(processor.ProcessorABC):
         #BCat CR Tope cutflow
         if shift_syst is None:
             #print("line 611/957")
+            # selectionBCatCRTope = PackedSelection()
+            # selectionBCatCRTope.add("0", (events.MET.pt>0) )
+            # selectionBCatCRTope.add("1", selection.all("metTrigger") )
+            # selectionBCatCRTope.add("2", (selectionBCatCRTope.all("1")) & (selection.all("electronTrigger")) )
+            # selectionBCatCRTope.add("3", (selectionBCatCRTope.all("2")) & (selection.all("metFilters")) )
+            # selectionBCatCRTope.add("4", (selectionBCatCRTope.all("3")) & (selection.all("Ntaus=0")) )
+            # selectionBCatCRTope.add("5", (selectionBCatCRTope.all("4")) & (selection.all("Nphotons=0")) )
+            # selectionBCatCRTope.add("6", (selectionBCatCRTope.all("5")) & (selection.all("HEM_veto")) )
+            # selectionBCatCRTope.add("7", (selectionBCatCRTope.all("6")) & (selection.all("NtightElectron=1")) & (selection.all("NlooseMuons=0")) )
+            # selectionBCatCRTope.add("8", (selectionBCatCRTope.all("7")) & (selection.all("MET>50GeV")) )
+            # selectionBCatCRTope.add("9", (selectionBCatCRTope.all("8")) & (selection.all("Recoil_eTopCR>250GeV")) )
+            # selectionBCatCRTope.add("10", (selectionBCatCRTope.all("9")) & (selection.all("NAK8Jet=1")) )
+            # selectionBCatCRTope.add("11", (selectionBCatCRTope.all("10")) & (selection.all("NisoaddAK4j<=2")) )
+            # selectionBCatCRTope.add("12", (selectionBCatCRTope.all("11")) & (selection.all("Nisoloosebjet=1")) )
+
+            #Defined by Prayag
+
             selectionBCatCRTope = PackedSelection()
             selectionBCatCRTope.add("0", (events.MET.pt>0) )
             selectionBCatCRTope.add("1", selection.all("metTrigger") )
             selectionBCatCRTope.add("2", (selectionBCatCRTope.all("1")) & (selection.all("electronTrigger")) )
-            selectionBCatCRTope.add("3", (selectionBCatCRTope.all("2")) & (selection.all("metFilters")) )
-            selectionBCatCRTope.add("4", (selectionBCatCRTope.all("3")) & (selection.all("Ntaus=0")) )
-            selectionBCatCRTope.add("5", (selectionBCatCRTope.all("4")) & (selection.all("Nphotons=0")) )
-            selectionBCatCRTope.add("6", (selectionBCatCRTope.all("5")) & (selection.all("HEM_veto")) )
-            selectionBCatCRTope.add("7", (selectionBCatCRTope.all("6")) & (selection.all("NtightElectron=1")) & (selection.all("NlooseMuons=0")) )
-            selectionBCatCRTope.add("8", (selectionBCatCRTope.all("7")) & (selection.all("MET>50GeV")) )
-            selectionBCatCRTope.add("9", (selectionBCatCRTope.all("8")) & (selection.all("Recoil_eTopCR>250GeV")) )
-            selectionBCatCRTope.add("10", (selectionBCatCRTope.all("9")) & (selection.all("NAK8Jet=1")) )
-            selectionBCatCRTope.add("11", (selectionBCatCRTope.all("10")) & (selection.all("NisoaddAK4j<=2")) )
-            selectionBCatCRTope.add("12", (selectionBCatCRTope.all("11")) & (selection.all("Nisoloosebjet=1")) )
+            selectionBCatCRTope.add("3", (selectionBCatCRTope.all("2")) & (selection.all("NAK8Jet=1")) )
+            selectionBCatCRTope.add("4", (selectionBCatCRTope.all("3")) & (selection.all("NisoaddAK4j<=2")) )
+            selectionBCatCRTope.add("5", (selectionBCatCRTope.all("4")) & (selection.all("Nisoloosebjet=1")) )
+            selectionBCatCRTope.add("6", (selectionBCatCRTope.all("5")) & (selection.all("NtightElectron=1")) & (selection.all("NlooseMuons=0")))
+            selectionBCatCRTope.add("7", (selectionBCatCRTope.all("6")) & (selection.all("MET>50GeV")) )
+            selectionBCatCRTope.add("8", (selectionBCatCRTope.all("7")) & (selection.all("Recoil_eTopCR>250GeV")) )
+            selectionBCatCRTope.add("9", (selectionBCatCRTope.all("8")) & (selection.all("metFilters")) )
+            selectionBCatCRTope.add("10", (selectionBCatCRTope.all("9")) & (selection.all("Ntaus=0")) )
+            selectionBCatCRTope.add("11", (selectionBCatCRTope.all("10")) & (selection.all("Nphotons=0")) )
+            selectionBCatCRTope.add("12", (selectionBCatCRTope.all("11")) & (selection.all("HEM_veto")) )
+
+            selectionBCatCRTope_withoutvetos = PackedSelection()
+            selectionBCatCRTope_withoutvetos.add("0", (events.MET.pt>0) )
+            selectionBCatCRTope_withoutvetos.add("1", selection.all("metTrigger") )
+            selectionBCatCRTope_withoutvetos.add("2", (selectionBCatCRTope_withoutvetos.all("1")) & (selection.all("electronTrigger")) )
+            selectionBCatCRTope_withoutvetos.add("3", (selectionBCatCRTope_withoutvetos.all("2")) & (selection.all("NAK8Jet=1")) )
+            selectionBCatCRTope_withoutvetos.add("4", (selectionBCatCRTope_withoutvetos.all("3")) & (selection.all("NisoaddAK4j<=2")) )
+            selectionBCatCRTope_withoutvetos.add("5", (selectionBCatCRTope_withoutvetos.all("4")) & (selection.all("Nisoloosebjet=1")) )
+            selectionBCatCRTope_withoutvetos.add("6", (selectionBCatCRTope_withoutvetos.all("5")) & (selection.all("NtightElectron=1")) & (selection.all("NlooseMuons=0")))
+            selectionBCatCRTope_withoutvetos.add("7", (selectionBCatCRTope_withoutvetos.all("6")) & (selection.all("MET>50GeV")) )
+            selectionBCatCRTope_withoutvetos.add("8", (selectionBCatCRTope_withoutvetos.all("7")) & (selection.all("Recoil_eTopCR>250GeV")) )
+
+            selectionBCatCRTope_minusHEM = PackedSelection()
+            selectionBCatCRTope_minusHEM.add("0", (events.MET.pt>0) )
+            selectionBCatCRTope_minusHEM.add("1", selection.all("metTrigger") )
+            selectionBCatCRTope_minusHEM.add("2", (selectionBCatCRTope_minusHEM.all("1")) & (selection.all("electronTrigger")) )
+            selectionBCatCRTope_minusHEM.add("3", (selectionBCatCRTope_minusHEM.all("2")) & (selection.all("NAK8Jet=1")) )
+            selectionBCatCRTope_minusHEM.add("4", (selectionBCatCRTope_minusHEM.all("3")) & (selection.all("NisoaddAK4j<=2")) )
+            selectionBCatCRTope_minusHEM.add("5", (selectionBCatCRTope_minusHEM.all("4")) & (selection.all("Nisoloosebjet=1")) )
+            selectionBCatCRTope_minusHEM.add("6", (selectionBCatCRTope_minusHEM.all("5")) & (selection.all("NtightElectron=1")) & (selection.all("NlooseMuons=0")))
+            selectionBCatCRTope_minusHEM.add("7", (selectionBCatCRTope_minusHEM.all("6")) & (selection.all("MET>50GeV")) )
+            selectionBCatCRTope_minusHEM.add("8", (selectionBCatCRTope_minusHEM.all("7")) & (selection.all("Recoil_eTopCR>250GeV")) )
+            selectionBCatCRTope_minusHEM.add("9", (selectionBCatCRTope_minusHEM.all("8")) & (selection.all("metFilters")) )
+            selectionBCatCRTope_minusHEM.add("10", (selectionBCatCRTope_minusHEM.all("9")) & (selection.all("Ntaus=0")) )
+            selectionBCatCRTope_minusHEM.add("11", (selectionBCatCRTope_minusHEM.all("10")) & (selection.all("Nphotons=0")) )
+            
+            #Fill the cutflow as sum of booleans(0 for False and 1 for True) ... comment by Prayag
             bin=0
             for n in selectionBCatCRTope.names:
                 output["Cutflow_BCat_CRTope"].fill(
@@ -643,6 +726,25 @@ class monoHbbProcessor(processor.ProcessorABC):
                 )
                 bin = bin+1
 
+            #Defined by Prayag
+            bin=0
+            for n in selectionBCatCRTope_withoutvetos.names:
+                output["debug_Cutflow_BCat_CRTope"].fill(
+                    debug="without_vetos",
+                    dataset=dataset,
+                    cut=np.asarray(bin),
+                    weight=selectionBCatCRTope_withoutvetos.all(n).sum(),
+                )
+                bin = bin+1
+            bin=0
+            for n in selectionBCatCRTope_minusHEM.names:
+                output["debug_Cutflow_BCat_CRTope"].fill(
+                    debug="minusHEM",
+                    dataset=dataset,
+                    cut=np.asarray(bin),
+                    weight=selectionBCatCRTope_minusHEM.all(n).sum(),
+                )
+                bin = bin+1
 
 
         #print("line 636/957")
@@ -810,6 +912,9 @@ class monoHbbProcessor(processor.ProcessorABC):
         ### Add systematics ###
 
         evtSels = "BoostedCatSels_CR_Tope"
+        #defined by Prayag
+        evtSels_withoutvetos = ""
+
         systList = []
         if(self.isMC):         
             if shift_syst is None:
@@ -978,6 +1083,14 @@ class monoHbbProcessor(processor.ProcessorABC):
                 output['FJet_TauNM_BCatMinus2'].fill(dataset=dataset, labelname=key, tau=ak.flatten(value[selection.all(evtSel_untilAK8)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSel_untilAK8)])
             for key, value in {'n2b1': AK8jets.n2b1, 'n3b1': AK8jets.n3b1}.items():
                 output['FJet_n2b1_n3b1_BCatMinus2'].fill(dataset=dataset, labelname=key, nNbeta1=ak.flatten(value[selection.all(evtSel_untilAK8)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSel_untilAK8)])
+
+            #Defined by Prayag
+            output[''].fill(
+                dataset=dataset,
+                name=ak.flatten(array[selection.all(evtSels)],axis=None),
+                systematic=syst,
+                weight=evtWeight[selection.all(evtSels)]
+                )
 
 
         #print("line 966/957")
