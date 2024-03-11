@@ -36,7 +36,7 @@ def plotWithRatio(
     leg="upper right",
     binwnorm=None,
 ):
-
+    print("stage1")
     # make a nice ratio plot
     plt.rcParams.update(
         {
@@ -57,6 +57,7 @@ def plotWithRatio(
             1, 1, figsize=(7, 7)
         )  # , gridspec_kw={"height_ratios": (3, 1)}, sharex=True)
 
+    print("stage2")
     # Here is an example of setting up a color cycler to color the various fill patches
     # http://colorbrewer2.org/#type=qualitative&scheme=Paired&n=6
     from cycler import cycler
@@ -87,6 +88,7 @@ def plotWithRatio(
         #        'emarker': '_'
     }
 
+    print("stage3")
     if invertStack:
         if type(h._axes[0]) == hist.hist_tools.Cat:
             h._axes[0]._sorted.reverse()
@@ -116,6 +118,7 @@ def plotWithRatio(
             binwnorm=binwnorm,
         )
 
+    print("stage4")
     ax.autoscale(axis="x", tight=True)
     ax.set_ylim(0, None)
     if not binwnorm is None:
@@ -143,6 +146,7 @@ def plotWithRatio(
             labels = ["Data"] + labels[:-1]
         ax.legend(handles, labels, bbox_to_anchor=leg_anchor, loc=leg_loc, fontsize=8)
 
+    print("stage5")
     if not hData is None:
         hist.plotratio(
             hData,
@@ -189,6 +193,7 @@ def plotWithRatio(
         )
         ax.set_ylim(0, ax.get_ylim()[1] * 1.1)
 
+    print("stage6")
     lumi = plt.text(
         1.0,
         1.0,
@@ -198,6 +203,8 @@ def plotWithRatio(
         verticalalignment="bottom",
         transform=ax.transAxes,
     )
+
+    print("stage7")
 
 
 def SetRangeHist(histogram, axisName, lower_bound=None, upper_bound=None):

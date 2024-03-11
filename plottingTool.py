@@ -43,7 +43,7 @@ def plotWithRatio(
         leg="upper right",
         binwnorm=None
 ):
-
+    print("stage 1")
     colors_CRTopmu = ['darkblue', 'maroon', 'red']
     colors_CRZmumu = ['forestgreen']
     #colors_CRZmumu = ['darkblue', 'maroon', 'red', 'mediumaquamarine', 'forestgreen']
@@ -78,6 +78,7 @@ def plotWithRatio(
             1, 1, figsize=(7, 7)
         )  # , gridspec_kw={"height_ratios": (3, 1)}, sharex=True)
 
+    print("stage 2")
     # Here is an example of setting up a color cycler to color the various fill patches
     # http://colorbrewer2.org/#type=qualitative&scheme=Paired&n=6
     from cycler import cycler
@@ -94,7 +95,7 @@ def plotWithRatio(
     if colors_cat=='Topmu':
         ax.set_prop_cycle(cycler(color=colors_CRTopmu))
         colors_category=colors_CRTopmu
-            
+    
     h.plot(
         overlay=overlay,
         ax=ax,
@@ -107,6 +108,7 @@ def plotWithRatio(
         facecolor=colors_category,
     )
     
+    print("stage 3")
     if not hData is None:
         #pass
         
@@ -141,6 +143,7 @@ def plotWithRatio(
                 linewidth=0,
         )
 
+    print("stage 4")
     if not hData is None:
         
         if binwnorm:
@@ -167,7 +170,8 @@ def plotWithRatio(
                         elinewidth=1,
                         label="Data",
             )
-        
+    
+    print("stage 5")
     if not binwnorm is None:
         ax.set_ylabel(f"<Events/{binwnorm}>")
         if "[" in ax.get_xlabel():
@@ -200,6 +204,7 @@ def plotWithRatio(
     ratio_mcStatUp = np.append(1 + np.sqrt(h[{overlay:sum}].variances())/h[{overlay:sum}].values(),[0])
     ratio_mcStatDo = np.append(1 - np.sqrt(h[{overlay:sum}].variances())/h[{overlay:sum}].values(),[0])
     
+    print("stage 6")
     if not hData is None:
         
         ratio_uncertainty_band = rax.fill_between(
@@ -229,6 +234,7 @@ def plotWithRatio(
         '''
 
         
+        print("stage 7")
         rax.errorbar(x=hData.axes[0].centers, 
                      y=ratios, 
                      xerr=np.diff(hData.axes[0].edges)/2,
@@ -267,6 +273,7 @@ def plotWithRatio(
     if not yRange is None:
         ax.set_ylim(yRange[0], yRange[1])
 
+    print("stage 8")
     CMS = plt.text(
         0.01, #0.02,
         1.0, #0.89,
@@ -300,6 +307,7 @@ def plotWithRatio(
     )
 
 
+    print("stage 9")
     ax.legend(fontsize=14, ncol=2, loc='upper right', frameon=False, bbox_to_anchor=(1.0, 1.0)).shadow=False
     ax.tick_params(axis='both', direction='in', length=5, which='minor')
     rax.tick_params(axis='both', direction='in', length=5, which='minor')
@@ -311,3 +319,4 @@ def plotWithRatio(
     rax.minorticks_on()
 
     
+    print("stage 10")

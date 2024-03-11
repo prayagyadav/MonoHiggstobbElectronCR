@@ -26,7 +26,7 @@ outputData = accumulate([
 outputMC = accumulate([
     util.load("coffea_files/ver3/output_MCTTbar1l1v_BCatTope2018_run20240310_181748.coffea"),
     #util.load("coffea_files/ver3/output_MCSingleTop1_BCatTope2018_.coffea"),
-    util.load("coffea_files/ver3/output_MCSingleTop2_BCatTope2018_run20240310_170949.coffea"),
+    #util.load("coffea_files/ver3/output_MCSingleTop2_BCatTope2018_run20240310_170949.coffea"),
     util.load("coffea_files/ver3/output_MCWlvJets_BCatTope2018_run20240310_205459.coffea"),
 ])
 
@@ -139,9 +139,12 @@ for key in outputHistMC.keys():
 
         # make cutflow plot
         hMC = outputHistMC[key]
+        print(key)
+        print(outputHistMC[key])
         hData = outputHistData[key][{'dataset':sum}]
-        print(hMC)
-        print(hData)
+        print(outputHistData[key][{'dataset':sum}])
+        #print(hMC)
+        #print(hData)
         plotWithRatio(h=hMC, hData=hData, overlay='dataset', logY=True, xLabel='Selection Bin', xRange=None, colors_cat='Topmu', extraText=None, lumi=59.83, year=2018)
         plt.savefig('plots/ver3/boosted/e/'+str(key)+'_plot_2018.png')
         print("Cutflow plot saved")
