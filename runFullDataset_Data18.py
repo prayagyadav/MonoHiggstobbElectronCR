@@ -117,7 +117,7 @@ if __name__ == "__main__":
         cluster = HTCondorCluster(
             cores=1,
             memory="4 GB",
-            disk="1 GB",
+            disk="20 GB",
             #death_timeout = '60',
             job_extra_directives={
                 #"+JobFlavour": '"longlunch"',

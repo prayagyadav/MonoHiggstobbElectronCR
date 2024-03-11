@@ -662,7 +662,7 @@ class monoHbbProcessor(processor.ProcessorABC):
         BCat_Tope_CR_AK8only = {
             "metTrigger",
             "electronTrigger",
-            "NAK8Jet=1"
+            "NAK8Jet=1",
             "NtightElectron=1",
             "NlooseMuons=0",
             "MET>50GeV",
@@ -753,7 +753,7 @@ class monoHbbProcessor(processor.ProcessorABC):
             bin=0
             for n in selectionBCatCRTope_withoutvetos.names:
                 output["debug_Cutflow_BCat_CRTope"].fill(
-                    debug="without_vetos",
+                    debug="withoutvetos",
                     dataset=dataset,
                     cut=np.asarray(bin),
                     weight=selectionBCatCRTope_withoutvetos.all(n).sum(),
@@ -1139,15 +1139,6 @@ class monoHbbProcessor(processor.ProcessorABC):
                 output['FJet_TauNM_BCatMinus2'].fill(dataset=dataset, labelname=key, tau=ak.flatten(value[selection.all(evtSel_untilAK8)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSel_untilAK8)])
             for key, value in {'n2b1': AK8jets.n2b1, 'n3b1': AK8jets.n3b1}.items():
                 output['FJet_n2b1_n3b1_BCatMinus2'].fill(dataset=dataset, labelname=key, nNbeta1=ak.flatten(value[selection.all(evtSel_untilAK8)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSel_untilAK8)])
-
-            #Defined by Prayag
-            output[''].fill(
-                dataset=dataset,
-                name=ak.flatten(array[selection.all(evtSels)],axis=None),
-                systematic=syst,
-                weight=evtWeight[selection.all(evtSels)]
-                )
-
 
         #print("line 966/957")
         #print(output)

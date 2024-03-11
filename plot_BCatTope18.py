@@ -10,25 +10,24 @@ from plotting import GroupBy
 from plottingTool import plotWithRatio
 
 extraText = r"$t \bar{t}$($e \nu$) + FatJet CR"+" \n"+" Boosted"
-#output_DataA_BCatTope2018_run20240301_010523.coffea
-#output_DataB_BCatTope2018_run20240301_010250.coffea
-#output_DataC_BCatTope2018_run20240301_010845.coffea
-#output_DataD_BCatTope2018_run20240301_013309.coffea
-#output_MCSingleTop1_BCatTope2018_run20240229_130934.coffea
-#output_MCSingleTop2_BCatTope2018_run20240229_073238.coffea
-#output_MCTTbar1l1v_BCatTope2018_run20240229_063035.coffea
-#output_MCWlvJets_BCatTope2018_run20240229_101017.coffea
+#-rw-rw-r-- 1 bsahu bsahu  31K Mar 10 23:45 output_DataC_BCatTope2018_run20240310_160556.coffea
+#-rw-rw-r-- 1 bsahu bsahu  30K Mar 10 23:45 output_DataB_BCatTope2018_run20240310_160035.coffea
+#-rw-rw-r-- 1 bsahu bsahu  33K Mar 10 23:45 output_DataA_BCatTope2018_run20240310_161659.coffea
+#-rw-rw-r-- 1 bsahu bsahu  34K Mar 10 23:45 output_DataD_BCatTope2018_run20240310_163738.coffea
+#-rw-rw-r-- 1 bsahu bsahu 1.6M Mar 10 23:45 output_MCSingleTop2_BCatTope2018_run20240310_170949.coffea
+#-rw-rw-r-- 1 bsahu bsahu 905K Mar 10 23:45 output_MCTTbar1l1v_BCatTope2018_run20240310_181748.coffea
+#-rw-rw-r-- 1 bsahu bsahu 3.5M Mar 10 23:45 output_MCWlvJets_BCatTope2018_run20240310_205459.coffea
 outputData = accumulate([
-    util.load("coffea_files/ver2/output_DataA_BCatTope2018_run20240305_140317.coffea"),
-    util.load("coffea_files/ver2/output_DataB_BCatTope2018_run20240305_135829.coffea"),
-    util.load("coffea_files/ver2/output_DataC_BCatTope2018_run20240305_140012.coffea"),
-    util.load("coffea_files/ver2/output_DataD_BCatTope2018_run20240305_142908.coffea"),
+    util.load("coffea_files/ver3/output_DataA_BCatTope2018_run20240310_161659.coffea"),
+    util.load("coffea_files/ver3/output_DataB_BCatTope2018_run20240310_160035.coffea"),
+    util.load("coffea_files/ver3/output_DataC_BCatTope2018_run20240310_160556.coffea"),
+    util.load("coffea_files/ver3/output_DataD_BCatTope2018_run20240310_163738.coffea"),
 ])
 outputMC = accumulate([
-    util.load("coffea_files/ver2/output_MCTTbar1l1v_BCatTope2018_run20240305_140626.coffea"),
-    util.load("coffea_files/ver2/output_MCSingleTop1_BCatTope2018_run20240305_141143.coffea"),
-    util.load("coffea_files/ver2/output_MCSingleTop2_BCatTope2018_run20240305_141413.coffea"),
-    util.load("coffea_files/ver2/output_MCWlvJets_BCatTope2018_run20240305_141349.coffea"),
+    util.load("coffea_files/ver3/output_MCTTbar1l1v_BCatTope2018_run20240310_181748.coffea"),
+    #util.load("coffea_files/ver3/output_MCSingleTop1_BCatTope2018_.coffea"),
+    util.load("coffea_files/ver3/output_MCSingleTop2_BCatTope2018_run20240310_170949.coffea"),
+    util.load("coffea_files/ver3/output_MCWlvJets_BCatTope2018_run20240310_205459.coffea"),
 ])
 
 
@@ -40,12 +39,12 @@ groupingMC = {
         "WJets_LNu_WPt_400To600_18",
         "WJets_LNu_WPt_600Toinf_18",
     ],
-    "SingleTop": [
-        "ST_tW_top_18",  
-        "ST_tW_antitop_18",
-        "ST_tchannel_top_18",  
-        "ST_tchannel_antitop_18",  
-    ],
+    #"SingleTop": [
+    #    "ST_tW_top_18",  
+    #    "ST_tW_antitop_18",
+    #    "ST_tchannel_top_18",  
+    #    "ST_tchannel_antitop_18",  
+    #],
     "tt": [
         "TTToSemiLeptonic_18",
         #"TTTo2L2Nu_18",
@@ -53,6 +52,27 @@ groupingMC = {
     ],
 }
 
+#Defined by Prayag
+# Separate the debug histograms from the main histograms
+temp = {}
+for key in outputData.keys():
+    temp[key]={}
+    for subkey in outputData[key].keys():
+        if subkey.startswith("debug"):
+            pass
+        else:
+            temp[key][subkey] = outputData[key][subkey]
+outputData=temp.copy()
+
+temp = {}
+for key in outputMC.keys():
+    temp[key]={}
+    for subkey in outputMC[key].keys():
+        if subkey.startswith("debug"):
+            pass
+        else :
+            temp[key][subkey] = outputMC[key][subkey]
+outputMC=temp.copy()
 #----------------------------------------
 ## Group MC samples and Data eras ##
 #----------------------------------------
@@ -65,7 +85,7 @@ for key, histo in outputHistMC.items():
         outputHistMC[key] = GroupBy(histo, 'dataset', 'dataset', groupingMC)
 
 outputHistData = accumulate([histo for key, histo in outputData.items()])
-
+#print(outputHistMC)
 #----------------------------------------
 ## Make Cutflow Table ##
 #----------------------------------------
@@ -78,19 +98,52 @@ for key in outputHistMC.keys():
         Ratio_DataMC = Nevents_Data[:13]/Nevents_MC[:13]
 
         bins_B_1eCR = np.linspace(0,12,13)
-        sels_B_1eCR = ["NoCut", "MET-Trigger","Electron-Trigger","MET-Filter", r"$N_{tau}=0$", r"$N_{\gamma}=0$", "HEM-veto", r"$N_{e}=1$", r"$p_{T}^{miss}>50$GeV", r"Recoil$>250$GeV", r"N(FatJet)=1", r"$N_{IsoAddjet}\leq2$", r"$N_{IsoLooseBtagjet}=1$"]
+
+        #BCat_Tope_CR = {
+        #    "metTrigger",
+        #    "electronTrigger",
+        #    "NAK8Jet=1",
+        #    "NisoaddAK4j<=2",
+        #    "Nisoloosebjet=1",
+        #    "NtightElectron=1",
+        #    "NlooseMuons=0",
+        #    "MET>50GeV",
+        #    "Recoil_eTopCR>250GeV",
+        #    "metFilters",
+        #    "Ntaus=0",
+        #    "Nphotons=0",
+        #    "HEM_veto"
+        #    }
+
+        sels_B_1eCR = [
+            "NoCut",
+            "MET-Trigger",
+            "Electron-Trigger",
+            r"N(FatJet)=1",
+            r"$N_{IsoAddjet}\leq2$",
+            r"$N_{IsoLooseBtagjet}=1$",
+            r"$N_{e}=1$",
+            r"$p_{T}^{miss}>50$GeV",
+            r"Recoil$>250$GeV",
+            "MET-Filter",
+            r"$N_{tau}=0$",
+            r"$N_{\gamma}=0$",
+            "HEM-veto"
+        ]
         import pandas as pd 
         Dict = {'Bin': bins_B_1eCR, 'Selection': sels_B_1eCR, 'NEvts_data': Nevents_Data[:13], 'NEvts_bkg': Nevents_MC[:13], 'Ratio': Ratio_DataMC}
-        print(Dict)
+        #print(Dict)
         df = pd.DataFrame(Dict)
-        np.savetxt('plots/ver2/boosted/e/'+str(key)+'_table_2018.txt', df.values, delimiter="\t", fmt='%d\t%s\t%.2e\t%.2e\t%.3f') 
+        np.savetxt('plots/ver3/boosted/e/'+str(key)+'_table_2018.txt', df.values, delimiter="\t", fmt='%d\t%s\t%.2e\t%.2e\t%.3f') 
         print("Cutflow saved")
 
         # make cutflow plot
         hMC = outputHistMC[key]
         hData = outputHistData[key][{'dataset':sum}]
+        print(hMC)
+        print(hData)
         plotWithRatio(h=hMC, hData=hData, overlay='dataset', logY=True, xLabel='Selection Bin', xRange=None, colors_cat='Topmu', extraText=None, lumi=59.83, year=2018)
-        plt.savefig('plots/ver2/boosted/e/'+str(key)+'_plot_2018.png')
+        plt.savefig('plots/ver3/boosted/e/'+str(key)+'_plot_2018.png')
         print("Cutflow plot saved")
  
 
@@ -103,7 +156,16 @@ def make_kinematicplot(var, Xlabel, rebin_factor, logY, xRange=None):
     
     figr, (ax) = plt.subplots(1)
     plotWithRatio(h=h1, hData=hData, overlay='dataset', logY=logY, xLabel=Xlabel, xRange=xRange, colors_cat='Topmu', extraText=extraText, lumi=59.83, year=2018)
-    plt.savefig('plots/ver2/boosted/e/'+var+'_BCatTope_2018.png')
+    plt.savefig('plots/ver3/boosted/e/'+var+'_BCatTope_2018.png')
+    print(var, " plot saved")
+
+def make_debug_kinematicplot(debugvar, var, Xlabel, rebin_factor, logY, xRange=None):
+    h1 = outputHistMC[var][{"systematic": 'nominal'}][...,::hist.rebin(rebin_factor)]
+    hData = outputHistData[var][{'dataset':sum}][{"systematic": 'noweight'}][...,::hist.rebin(rebin_factor)]
+    
+    figr, (ax) = plt.subplots(1)
+    plotWithRatio(h=h1, hData=hData, overlay='dataset', logY=logY, xLabel=Xlabel, xRange=xRange, colors_cat='Topmu', extraText=extraText, lumi=59.83, year=2018)
+    plt.savefig('plots/ver3/boosted/e/'+var+'_BCatTope_2018.png')
     print(var, " plot saved")
 
 make_kinematicplot(var="MET_pT", Xlabel="MET [GeV]", rebin_factor=4, logY=True, xRange=[0.,800.])
@@ -189,7 +251,7 @@ def make_kinematicplot_2d(var, whichtau, Xlabel, rebin_factor, logY, xRange=None
     hData_ = outputHistData[var][{'dataset':sum}][{"labelname": whichtau, "systematic": 'noweight'}][...,::hist.rebin(rebin_factor)]
     figr, (ax) = plt.subplots(1)
     plotWithRatio(h=hMC_, hData=hData_, overlay='dataset', logY=logY, xLabel=Xlabel, xRange=xRange, colors_cat='Topmu', extraText=extraText, lumi=59.83, year=2018)
-    plt.savefig('plots/ver2/boosted/e/FJet_'+whichtau+'_2018.png')
+    plt.savefig('plots/ver3/boosted/e/FJet_'+whichtau+'_2018.png')
     print(whichtau, " plot saved")
 
 make_kinematicplot_2d(var="FJet_TauN", whichtau='tau1', Xlabel=r"FatJet $\tau_{1}$", rebin_factor=1, logY=False)
@@ -230,7 +292,7 @@ def checkSyst_nomUpDown(var, var_axis, syste, Title):
     ax.set_ylabel("Events")
     ax.set_title(Title, fontsize=16)
     ax.legend(fontsize=15)
-    plt.savefig('plots/ver2/boosted/e/'+str(var)+'_'+str(syste)+'_updown_2018.png') 
+    plt.savefig('plots/ver3/boosted/e/'+str(var)+'_'+str(syste)+'_updown_2018.png') 
     print(str(var)+'_'+str(syste)+'_updown', "plot saved")
 
 checkSyst_nomUpDown(var="MET_pT", var_axis="met", syste='JES', Title='JES')
