@@ -192,8 +192,8 @@ def make_debug_kinematicplot(debugvar, var, Xlabel, rebin_factor, logY, xRange=N
     
     figr, (ax) = plt.subplots(1)
     plotWithRatio(h=h1, hData=hData, overlay='dataset', logY=logY, xLabel=Xlabel, xRange=xRange, colors_cat='Topmu', extraText=extraText, lumi=59.83, year=2018)
-    plt.savefig('plots/ver3/boosted/e/debug_'+var+debugvar+'_BCatTope_2018.png')
-    print('debug_'+var+debugvar, " plot saved")
+    plt.savefig('plots/ver3/boosted/e/'+var+debugvar+'_BCatTope_2018.png')
+    print(var+debugvar, " plot saved")
 
 
 # MET and Recoil
