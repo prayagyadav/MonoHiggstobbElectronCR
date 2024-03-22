@@ -378,12 +378,16 @@ class monoHbbProcessor(processor.ProcessorABC):
         if self.isMC==True:
             corr_MET_pt, corr_MET_phi = jerjesCorrection.get_polar_corrected_MET(runera=era, npv=events.PV.npvsGood, met_pt=events.MET.pt, met_phi=events.MET.phi)
 
-        # For HEM cleaning, separate the MC events into affected and non-affected
-        # fraction of lumi from affected 2018 Data runs is 0.647724485 (from brilcalc)
-        HEM_MCbool_1 = np.ones(round(len(events.MET.pt)*0.647724485), dtype=bool)
-        HEM_MCbool_0 = ~np.ones(round(len(events.MET.pt)*(1.0-0.647724485)), dtype=bool)
-        HEM_MCbool = np.concatenate((HEM_MCbool_1, HEM_MCbool_0))
-        HEM_MCbool = ak.singletons(HEM_MCbool)
+        # # For HEM cleaning, separate the MC events into affected and non-affected
+        # # fraction of lumi from affected 2018 Data runs is 0.647724485 (from brilcalc)
+        # HEM_MCbool_1 = np.ones(round(len(events.MET.pt)*0.647724485), dtype=bool)
+        # HEM_MCbool_0 = ~np.ones(round(len(events.MET.pt)*(1.0-0.647724485)), dtype=bool)
+        # HEM_MCbool = np.concatenate((HEM_MCbool_1, HEM_MCbool_0))
+        # HEM_MCbool = ak.singletons(HEM_MCbool)
+
+        # Defined by Prayag
+        # Totally remove the HEM 15/16 region from all the runs from Data and MC
+        # Defined later
 
             
         #print("line 360/957")
@@ -525,18 +529,27 @@ class monoHbbProcessor(processor.ProcessorABC):
         # HEM cleaning
         ##################
         # veto events if any jet (ak4 or ak8) present in HEM affected region
+        # if era == 2017:
+        #     HEM_cut = np.ones(len(events.MET.pt), dtype=bool)
+        # elif era == 2018:
+        #     if self.isMC==False:
+        #         HEM_cut_ak4 = jerjesCorrection.HEM_veto(isMC=self.isMC, nrun=events.run, HEMaffected=False, obj=AK4jets)
+        #         HEM_cut_ak8 = jerjesCorrection.HEM_veto(isMC=self.isMC, nrun=events.run, HEMaffected=False, obj=AK8jets)
+        #         HEM_cut = (HEM_cut_ak4) & (HEM_cut_ak8)
+        #     elif self.isMC==True:
+        #         HEM_cut_ak4 = jerjesCorrection.HEM_veto(isMC=self.isMC, nrun=np.ones(len(events)), HEMaffected=HEM_MCbool, obj=AK4jets)
+        #         HEM_cut_ak8 = jerjesCorrection.HEM_veto(isMC=self.isMC, nrun=np.ones(len(events)), HEMaffected=HEM_MCbool, obj=AK8jets)
+        #         HEM_cut = (HEM_cut_ak4) & (HEM_cut_ak8)
+
+        # Defined by Prayag
+        # Totally remove the HEM 15 16 regions in all the Runs in Data and MC
         if era == 2017:
             HEM_cut = np.ones(len(events.MET.pt), dtype=bool)
         elif era == 2018:
-            if self.isMC==False:
-                HEM_cut_ak4 = jerjesCorrection.HEM_veto(isMC=self.isMC, nrun=events.run, HEMaffected=False, obj=AK4jets)
-                HEM_cut_ak8 = jerjesCorrection.HEM_veto(isMC=self.isMC, nrun=events.run, HEMaffected=False, obj=AK8jets)
-                HEM_cut = (HEM_cut_ak4) & (HEM_cut_ak8)
-            elif self.isMC==True:
-                HEM_cut_ak4 = jerjesCorrection.HEM_veto(isMC=self.isMC, nrun=np.ones(len(events)), HEMaffected=HEM_MCbool, obj=AK4jets)
-                HEM_cut_ak8 = jerjesCorrection.HEM_veto(isMC=self.isMC, nrun=np.ones(len(events)), HEMaffected=HEM_MCbool, obj=AK8jets)
-                HEM_cut = (HEM_cut_ak4) & (HEM_cut_ak8)
-
+            HEM_cut_ak4 = jerjesCorrection.HEM_veto_total_removal(obj=AK4jets)
+            HEM_cut_ak8 = jerjesCorrection.HEM_veto_total_removal(obj=AK8jets)
+            HEM_cut = (HEM_cut_ak4) & (HEM_cut_ak8)
+        
         ##################
         # EVENT VARIABLES
         ##################
