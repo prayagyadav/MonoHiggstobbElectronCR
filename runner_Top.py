@@ -243,7 +243,7 @@ if __name__=="__main__":
         print("Processing Top Muon CR")
         
     ismc = True
-    if inputs.keymap == "MET_Run2018":
+    if (inputs.keymap).startswith("Data"):
         ismc = False
 
     Era = 2018
@@ -502,6 +502,7 @@ if __name__=="__main__":
             maxchunks= inputs.max_chunks,
             xrootdtimeout=120
         )
+        print(files.keys())
         Output = futures_run(
             files,
             "Events",
@@ -600,9 +601,9 @@ if __name__=="__main__":
     # Create the output file #
     #################################
 
-    outfile = os.path.join(inputs.outdir, f"output_{inputs.keymap}_BCatTop{inputs.lepton}2018.coffea")
+    outfile = os.path.join(inputs.outdir, f"CR_{inputs.keymap}_BCatTop{inputs.lepton}_2018_from_{inputs.begin}_to_{inputs.end}.coffea")
 
-    util.save(output, outfile)
+    util.save(Output, outfile)
     print(f"Saved output to {outfile}")
 
     # print("Output produced")

@@ -154,6 +154,7 @@ if __name__ == "__main__":
     if (args.mcGroup == "DataA") | (args.mcGroup == "DataB") | (args.mcGroup == "DataC") | (args.mcGroup == "DataD"):
         print('This is Data!')
         job_fileset = {key: filelist[key] for key in group_mapping[args.mcGroup]}
+        print(job_fileset.keys())
         output = runner(
             job_fileset,
             treename="Events",
