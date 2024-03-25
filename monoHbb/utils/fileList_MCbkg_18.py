@@ -1,5 +1,5 @@
-#redirector = "root://cmsxrootd.fnal.gov//"
-redirector = "root://xrootd-cms.infn.it//"
+redirector = "root://cmsxrootd.fnal.gov//"
+#redirector = "root://xrootd-cms.infn.it//"
 
 '''
 #Not all MC root files, but should have sufficient stats.
