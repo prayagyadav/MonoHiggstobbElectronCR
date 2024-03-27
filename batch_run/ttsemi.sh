@@ -8,7 +8,7 @@ echo "starting..."
 CATEGORY="boosted"
 LEPTON="e"
 WORKERS=8
-REDIRECTOR="fnal"
+REDIRECTOR="infn"
 OUTPUT_DIRECTORY="debug_Output"
 mkdir -p ./logs
 

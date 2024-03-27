@@ -558,7 +558,7 @@ if __name__=="__main__":
             level=logging.WARNING,
         )
         print("Preparing to run at condor...\n")
-        executor , client = runCondor(cores=1,memory="4 GB",disk="4 GB",workers=inputs.workers)
+        executor , client = runCondor(cores=1,memory="16 GB",disk="4 GB",workers=inputs.workers)
         print("Executor and Client Obtained")
         #client.upload_file(
         #    zip_files(
