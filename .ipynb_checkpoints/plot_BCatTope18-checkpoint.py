@@ -17,17 +17,43 @@ extraText = r"$t \bar{t}$($e \nu$) + FatJet CR"+" \n"+" Boosted"
 #-rw-rw-r-- 1 bsahu bsahu 1.6M Mar 10 23:45 output_MCSingleTop2_BCatTope2018_run20240310_170949.coffea
 #-rw-rw-r-- 1 bsahu bsahu 905K Mar 10 23:45 output_MCTTbar1l1v_BCatTope2018_run20240310_181748.coffea
 #-rw-rw-r-- 1 bsahu bsahu 3.5M Mar 10 23:45 output_MCWlvJets_BCatTope2018_run20240310_205459.coffea
+
+#-rw-rw-r-- 1 bsahu bsahu  33K Mar 25 10:07 CR_DataA_BCatTope_2018_from_1_to_40.coffea
+#-rw-rw-r-- 1 bsahu bsahu  31K Mar 25 10:08 CR_DataC_BCatTope_2018_from_1_to_24.coffea
+#-rw-rw-r-- 1 bsahu bsahu  29K Mar 25 10:10 CR_DataD_BCatTope_2018_from_101_to_121.coffea
+#-rw-rw-r-- 1 bsahu bsahu  32K Mar 25 10:14 CR_DataD_BCatTope_2018_from_51_to_100.coffea
+#-rw-rw-r-- 1 bsahu bsahu  30K Mar 25 10:15 CR_DataB_BCatTope_2018_from_1_to_22.coffea
+#-rw-rw-r-- 1 bsahu bsahu  32K Mar 25 10:16 CR_DataD_BCatTope_2018_from_1_to_50.coffea
+#-rw-rw-r-- 1 bsahu bsahu 1.5M Mar 26 21:16 CR_MCSingleTop1_BCatTope_2018_from_1_to_279.coffea
+#-rw-rw-r-- 1 bsahu bsahu 809K Mar 27 03:22 CR_MCTTbar1l1v_BCatTope_2018_from_1_to_10.coffea
+#-rw-rw-r-- 1 bsahu bsahu 810K Mar 27 04:11 CR_MCTTbar1l1v_BCatTope_2018_from_11_to_20.coffea
+#-rw-rw-r-- 1 bsahu bsahu 794K Mar 27 04:44 CR_MCTTbar1l1v_BCatTope_2018_from_21_to_30.coffea
+#-rw-rw-r-- 1 bsahu bsahu 2.8M Mar 27 05:00 CR_MCWlvJets_BCatTope_2018_from_101_to_164.coffea
+#-rw-rw-r-- 1 bsahu bsahu 650K Mar 27 05:21 CR_MCWlvJets_BCatTope_2018_from_1_to_50.coffea
+#-rw-rw-r-- 1 bsahu bsahu 802K Mar 27 05:22 CR_MCTTbar1l1v_BCatTope_2018_from_31_to_40.coffea
+#-rw-rw-r-- 1 bsahu bsahu 804K Mar 27 05:31 CR_MCSingleTop2_BCatTope_2018_from_1_to_52.coffea
+#-rw-rw-r-- 1 bsahu bsahu 806K Mar 27 05:42 CR_MCSingleTop2_BCatTope_2018_from_53_to_75.coffea
+#-rw-rw-r-- 1 bsahu bsahu 786K Mar 27 05:47 CR_MCTTbar1l1v_BCatTope_2018_from_41_to_47.coffea
 outputData = accumulate([
-    util.load("coffea_files/ver3/output_DataA_BCatTope2018_run20240310_161659.coffea"),
-    util.load("coffea_files/ver3/output_DataB_BCatTope2018_run20240310_160035.coffea"),
-    util.load("coffea_files/ver3/output_DataC_BCatTope2018_run20240310_160556.coffea"),
-    util.load("coffea_files/ver3/output_DataD_BCatTope2018_run20240310_163738.coffea"),
+    util.load("coffea_files/ver4/CR_DataA_BCatTope_2018_from_1_to_40.coffea"),
+    util.load("coffea_files/ver4/CR_DataB_BCatTope_2018_from_1_to_22.coffea"),
+    util.load("coffea_files/ver4/CR_DataC_BCatTope_2018_from_1_to_24.coffea"),
+    util.load("coffea_files/ver4/CR_DataD_BCatTope_2018_from_1_to_50.coffea"),
+	 util.load("coffea_files/ver4/CR_DataD_BCatTope_2018_from_51_to_100.coffea"),
+	 util.load("coffea_files/ver4/CR_DataD_BCatTope_2018_from_101_to_121.coffea"),
 ])
 outputMC = accumulate([
-    util.load("coffea_files/ver3/output_MCTTbar1l1v_BCatTope2018_run20240310_181748.coffea"),
-    #util.load("coffea_files/ver3/output_MCSingleTop1_BCatTope2018_.coffea"),
-    #util.load("coffea_files/ver3/output_MCSingleTop2_BCatTope2018_run20240310_170949.coffea"),
-    util.load("coffea_files/ver3/output_MCWlvJets_BCatTope2018_run20240310_205459.coffea"),
+    util.load("coffea_files/ver4/CR_MCTTbar1l1v_BCatTope_2018_from_1_to_10.coffea"),
+    util.load("coffea_files/ver4/CR_MCTTbar1l1v_BCatTope_2018_from_11_to_20.coffea"),
+    util.load("coffea_files/ver4/CR_MCTTbar1l1v_BCatTope_2018_from_21_to_30.coffea"),
+    util.load("coffea_files/ver4/CR_MCTTbar1l1v_BCatTope_2018_from_31_to_40.coffea"),
+	 util.load("coffea_files/ver4/CR_MCTTbar1l1v_BCatTope_2018_from_41_to_47.coffea"),
+    util.load("coffea_files/ver4/CR_MCSingleTop1_BCatTope_2018_from_1_to_279.coffea"),
+    util.load("coffea_files/ver4/CR_MCSingleTop2_BCatTope_2018_from_1_to_52.coffea"),
+    util.load("coffea_files/ver4/CR_MCSingleTop2_BCatTope_2018_from_53_to_75.coffea"),
+	 util.load("coffea_files/ver4/CR_MCWlvJets_BCatTope_2018_from_1_to_50.coffea"),
+    util.load("coffea_files/ver4/"),
+	 util.load("coffea_files/ver4/CR_MCWlvJets_BCatTope_2018_from_101_to_164.coffea"),
 ])
 
 
@@ -39,12 +65,12 @@ groupingMC = {
         "WJets_LNu_WPt_400To600_18",
         "WJets_LNu_WPt_600Toinf_18",
     ],
-    #"SingleTop": [
-    #    "ST_tW_top_18",  
-    #    "ST_tW_antitop_18",
-    #    "ST_tchannel_top_18",  
-    #    "ST_tchannel_antitop_18",  
-    #],
+    "SingleTop": [
+        "ST_tW_top_18",  
+        "ST_tW_antitop_18",
+        "ST_tchannel_top_18",  
+        "ST_tchannel_antitop_18",  
+    ],
     "tt": [
         "TTToSemiLeptonic_18",
         #"TTTo2L2Nu_18",

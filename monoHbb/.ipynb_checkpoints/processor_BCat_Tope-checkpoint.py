@@ -548,7 +548,8 @@ class monoHbbProcessor(processor.ProcessorABC):
         elif era == 2018:
             HEM_cut_ak4 = jerjesCorrection.HEM_veto_total_removal(obj=AK4jets)
             HEM_cut_ak8 = jerjesCorrection.HEM_veto_total_removal(obj=AK8jets)
-            HEM_cut = (HEM_cut_ak4) & (HEM_cut_ak8)
+            HEM_cut_tightElectrons = jerjesCorrection.HEM_veto_total_removal(obj=tightElectrons)
+            HEM_cut = ((HEM_cut_ak4) & (HEM_cut_ak8) & (HEM_cut_tightElectrons))
         
         ##################
         # EVENT VARIABLES

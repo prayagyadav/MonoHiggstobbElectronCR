@@ -7,7 +7,6 @@ if __name__=="__main__":
     import argparse
     from coffea import util
     from coffea.nanoevents import NanoAODSchema , NanoEventsFactory
-    from coffea.lumi_tools import LumiMask
     import awkward as ak
     import numba
     from monoHbb.utils.crossSections import lumis, crossSections
@@ -17,6 +16,7 @@ if __name__=="__main__":
     import os
     import shutil
     import logging
+    import hist
 
     ##############################
     # Define the terminal inputs #
@@ -243,7 +243,7 @@ if __name__=="__main__":
         print("Processing Top Muon CR")
         
     ismc = True
-    if inputs.keymap == "MET_Run2018":
+    if (inputs.keymap).startswith("Data"):
         ismc = False
 
     Era = 2018
@@ -502,6 +502,7 @@ if __name__=="__main__":
             maxchunks= inputs.max_chunks,
             xrootdtimeout=120
         )
+        print(files.keys())
         Output = futures_run(
             files,
             "Events",
@@ -557,7 +558,7 @@ if __name__=="__main__":
             level=logging.WARNING,
         )
         print("Preparing to run at condor...\n")
-        executor , client = runCondor(cores=1,memory="4 GB",disk="4 GB",workers=inputs.workers)
+        executor , client = runCondor(cores=1,memory="16 GB",disk="4 GB",workers=inputs.workers)
         print("Executor and Client Obtained")
         #client.upload_file(
         #    zip_files(
@@ -600,9 +601,33 @@ if __name__=="__main__":
     # Create the output file #
     #################################
 
-    outfile = os.path.join(inputs.outdir, f"output_{inputs.keymap}_BCatTop{inputs.lepton}2018.coffea")
 
-    util.save(output, outfile)
+    if (inputs.keymap).startswith("Data"):
+        print('Data\n')
+        
+        for dataset_name,dataset_files in files.items():
+            print(dataset_name,":",Output[dataset_name]["EventCount"].value)
+        
+    else:
+        print('MC')
+        print('Scaling with luminosity and cross section ...\n')
+        
+        #scale with xsec and luminosity
+        for dataset_name,dataset_files in files.items():
+            # Calculate luminosity scale factor
+            lumi_sf = (
+                crossSections[dataset_name]
+                * lumis[2018]
+                / Output[dataset_name]["EventCount"].value
+            )
+            print(dataset_name,":",Output[dataset_name]["EventCount"].value)
+            for key, obj in Output[dataset_name].items():
+                if isinstance(obj, hist.Hist):
+                    obj *= lumi_sf
+
+    outfile = os.path.join(inputs.outdir, f"CR_{inputs.keymap}_BCatTop{inputs.lepton}_2018_from_{inputs.begin}_to_{inputs.end}.coffea")
+
+    util.save(Output, outfile)
     print(f"Saved output to {outfile}")
 
     # print("Output produced")

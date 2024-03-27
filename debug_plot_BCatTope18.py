@@ -77,22 +77,22 @@ groupingMC = {
 
 #Defined by Prayag
 #Scaling MC because I forgot to scale in the runner_Top.py
-#job_fileset = {key: filelist[key] for key in mc_group_mapping[args.mcGroup]}
-dataset_list = []
-for key , value in groupingMC.items():
-    dataset_list += value
-#scale with xsec and luminosity
-for dataset_name in dataset_list:
-    # Calculate luminosity scale factor
-    lumi_sf = (
-        crossSections[dataset_name]
-        * lumis[2018]
-        / outputMC[dataset_name]["EventCount"].value
-    )
-    #print(dataset_name,":",outputMC[dataset_name]["EventCount"].value)
-    for key, obj in outputMC[dataset_name].items():
-        if isinstance(obj, hist.Hist):
-            obj *= lumi_sf
+
+# dataset_list = []
+# for key , value in groupingMC.items():
+#     dataset_list += value
+# #scale with xsec and luminosity
+# for dataset_name in dataset_list:
+#     # Calculate luminosity scale factor
+#     lumi_sf = (
+#         crossSections[dataset_name]
+#         * lumis[2018]
+#         / outputMC[dataset_name]["EventCount"].value
+#     )
+
+#     for key, obj in outputMC[dataset_name].items():
+#         if isinstance(obj, hist.Hist):
+#             obj *= lumi_sf
 
 
 
