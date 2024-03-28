@@ -7,8 +7,8 @@ echo "starting..."
 #export EXTERNAL_BIND=../
 CATEGORY="boosted"
 LEPTON="e"
-WORKERS=8
-REDIRECTOR="infn"
+WORKERS=16
+REDIRECTOR="fnal"
 OUTPUT_DIRECTORY="debug_Output"
 mkdir -p ./logs
 
