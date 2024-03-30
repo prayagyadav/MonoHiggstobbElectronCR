@@ -55,10 +55,10 @@ def Electron_SFs(electron, Wp, syst, era=2018):
     electron, nelectron = ak.flatten(electron), ak.num(electron)
     if (era==2017):
         era_arg = "2017"
-        Electron_evaluator = correctionlib.CorrectionSet.from_file("monohbb/scalefactors/POG/EGM/2017_UL/electron.json")
+        Electron_evaluator = correctionlib.CorrectionSet.from_file("monoHbb/scalefactors/POG/EGM/2017_UL/electron.json")
     elif (era==2018):
         era_arg = "2018"
-        Electron_evaluator = correctionlib.CorrectionSet.from_file("monohbb/scalefactors/POG/EGM/2018_UL/electron.json")
+        Electron_evaluator = correctionlib.CorrectionSet.from_file("monoHbb/scalefactors/POG/EGM/2018_UL/electron.json")
     else:
         raise Exception(f"Error: Unknown era \"{era}\".")
     if (Wp=="Tight"):
@@ -827,36 +827,39 @@ class monoHbbProcessor(processor.ProcessorABC):
             ##################
             
             #tightMuon SF
-            #muID_sf, muIso_sf = Muon_SFs(tightMuons, Wp="Tight", syst="sf", era=era)
-            #muID_up, muIso_up = Muon_SFs(tightMuons, Wp="Tight", syst="systup", era=era) 
-            #muID_down, muIso_down = Muon_SFs(tightMuons, Wp="Tight", syst="systdown", era=era) 
+            muID_sf, muIso_sf = Muon_SFs(tightMuons, Wp="Tight", syst="sf", era=era)
+            muID_up, muIso_up = Muon_SFs(tightMuons, Wp="Tight", syst="systup", era=era) 
+            muID_down, muIso_down = Muon_SFs(tightMuons, Wp="Tight", syst="systdown", era=era) 
+            # print("\nmuID_sf\n", muID_sf)
+            # print("\nmuIso_sf\n", muIso_sf)
+            muSF = ak.prod(muID_sf * muIso_sf, axis=-1) # ak.prod(Array, axis=-1): multiplies the SFs for each element in the Array in an event, where Array has product of diff SFs
+            # print("\nmuSF\n",muSF)
+            muSF_up = ak.prod(muID_up * muIso_up, axis=-1)
+            muSF_down = ak.prod(muID_down * muIso_down, axis=-1)
 
-            #muSF = ak.prod(muID_sf * muIso_sf, axis=-1) # ak.prod(Array, axis=-1): multiplies the SFs for each element in the Array in an event, where Array has product of diff SFs
-            #muSF_up = ak.prod(muID_up * muIso_up, axis=-1)
-            #muSF_down = ak.prod(muID_down * muIso_down, axis=-1)
-
-            #weights_CR.add("muEffWeight", weight=muSF, weightUp=muSF_up, weightDown=muSF_down)
-           
+            weights_CR.add("muEffWeight", weight=muSF, weightUp=muSF_up, weightDown=muSF_down)
+            # print(muSF)
             ##################
             # Electron SFs
             ##################
 
             #tightElectrons SF
-            #electronID_sf = Electron_SFs(tightElectrons, Wp="Tight", syst="sf", era=era)         
-            ##print(electronID_sf)
-            #electronID_up = Electron_SFs(tightElectrons, Wp="Tight", syst="sfup", era=era) 
-            #electronID_down = Electron_SFs(tightElectrons, Wp="Tight", syst="sfdown", era=era) 
+            electronID_sf = Electron_SFs(tightElectrons, Wp="Tight", syst="sf", era=era)         
+            # print("\nelectronID_sf\n",electronID_sf)
+            electronID_up = Electron_SFs(tightElectrons, Wp="Tight", syst="sfup", era=era) 
+            electronID_down = Electron_SFs(tightElectrons, Wp="Tight", syst="sfdown", era=era) 
 
-            ###electronSF = ak.prod(electronID_sf * electronIso_sf, axis=-1) # ak.prod(Array, axis=-1): multiplies the SFs for each element in the Array in an event, where Array has product of diff SFs
-            ###electronSF_up = ak.prod(electronID_up * electronIso_up, axis=-1)
-            ###electronSF_down = ak.prod(electronID_down * electronIso_down, axis=-1)
+            electronSF = ak.prod(electronID_sf, axis=-1) # ak.prod(Array, axis=-1): multiplies the SFs for each element in the Array in an event, where Array has product of diff SFs
+            electronSF_up = ak.prod(electronID_up, axis=-1)
+            electronSF_down = ak.prod(electronID_down, axis=-1)
 
-            #electronSF = electronID_sf
-            #electronSF_up = electronID_up
-            #electronSF_down = electronID_down
+            # electronSF = electronID_sf
+            # # print("\nelectronSF",electronSF)
+            # electronSF_up = electronID_up
+            # electronSF_down = electronID_down
 
-            #weights_CR.add("electronEffWeight", weight=electronSF, weightUp=electronSF_up, weightDown=electronSF_down)
-
+            weights_CR.add("electronEffWeight", weight=electronSF, weightUp=electronSF_up, weightDown=electronSF_down)
+            print(electronSF)
 
             #print("line 710/957")
             #########################
@@ -958,8 +961,8 @@ class monoHbbProcessor(processor.ProcessorABC):
             if shift_syst is None:
                 systList = [
                     "nominal",
-                    #"electronEffWeightUp",
-                    #"electronEffWeightDown",
+                    "electronEffWeightUp",
+                    "electronEffWeightDown",
                     "btagWeightUp",
                     "btagWeightDown",
                     "puWeightUp",
