@@ -588,7 +588,7 @@ class monoHbbProcessor(processor.ProcessorABC):
             selection.add("electronTrigger",(events.HLT.Ele32_WPTight_Gsf_L1DoubleEG))
             #Add triggerEfficiencySF
         elif era==2018:
-            selection.add("electronTrigger",(events.HLT.Ele32_WPTight_Gsfv))
+            selection.add("electronTrigger",(events.HLT.Ele32_WPTight_Gsf))
             #Add triggerEfficiencySF
 
         #print("line 550/957")
