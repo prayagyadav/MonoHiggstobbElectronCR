@@ -14,6 +14,7 @@ from .scalefactors import (
     triggerEffLookup_17,
     taggingEffLookupLooseWP_18,
     taggingEffLookupLooseWP_17,
+    ElectrontriggerEffLookup_18
 )
 
 from collections import defaultdict
@@ -589,6 +590,7 @@ class monoHbbProcessor(processor.ProcessorABC):
             #Add triggerEfficiencySF
         elif era==2018:
             selection.add("electronTrigger",(events.HLT.Ele32_WPTight_Gsf))
+            ElectrontriggerEffLookup = ElectrontriggerEffLookup_18
             #Add triggerEfficiencySF
 
         #print("line 550/957")
@@ -821,30 +823,52 @@ class monoHbbProcessor(processor.ProcessorABC):
             triggerSFWeight_Down = (triggerSFWeight - triggerSF_err)
             weights_CR.add("TriggerSFWeight",weight=triggerSFWeight,weightUp=triggerSFWeight_Up,weightDown=triggerSFWeight_Down,)                
 
+            #########################
+            # Electron Trigger SF
+            #########################
+
+            # # Given the Electron in an event, the event will have an SF value which we read from a lookup table 
+            def get_electron_trigger_weight(tight_electrons, lookup_table):
+                '''
+                Provides the electron trigger scale factor in appropriate event weight format.
+                '''
+                a =  ak.mask(tight_electrons, ak.num(tight_electrons) == 1)
+                b = lookup_table(abs(a.eta),a.pt)
+                c = ak.fill_none(b,[-1] , axis = 0)
+                d = ak.flatten(c)
+                e = ak.mask(d, d>0)
+                return e
+            ElectrontriggerSFWeight = get_electron_trigger_weight(tightElectrons,ElectrontriggerEffLookup)
+            ElectrontriggerSF_err = ak.where(ElectrontriggerSFWeight>0, 0.01, 0.00) # assigning 1 % uncertainty to all
+            ElectrontriggerSFWeight_Up = (ElectrontriggerSFWeight + ElectrontriggerSF_err)
+            ElectrontriggerSFWeight_Down = (ElectrontriggerSFWeight - ElectrontriggerSF_err)
+            weights_CR.add("ElectronTriggerSFWeight",weight=ElectrontriggerSFWeight,weightUp=ElectrontriggerSFWeight_Up,weightDown=ElectrontriggerSFWeight_Down,)                
+            
             #print("line 673/957")
             ##################
-            # Muon SFs          Change it for Electron SFs
+            # Muon SFs
             ##################
             
-            #tightMuon SF
-            muID_sf, muIso_sf = Muon_SFs(tightMuons, Wp="Tight", syst="sf", era=era)
-            muID_up, muIso_up = Muon_SFs(tightMuons, Wp="Tight", syst="systup", era=era) 
-            muID_down, muIso_down = Muon_SFs(tightMuons, Wp="Tight", syst="systdown", era=era) 
-            # print("\nmuID_sf\n", muID_sf)
-            # print("\nmuIso_sf\n", muIso_sf)
-            muSF = ak.prod(muID_sf * muIso_sf, axis=-1) # ak.prod(Array, axis=-1): multiplies the SFs for each element in the Array in an event, where Array has product of diff SFs
-            # print("\nmuSF\n",muSF)
-            muSF_up = ak.prod(muID_up * muIso_up, axis=-1)
-            muSF_down = ak.prod(muID_down * muIso_down, axis=-1)
+            # #tightMuon SF
+            # muID_sf, muIso_sf = Muon_SFs(tightMuons, Wp="Tight", syst="sf", era=era)
+            # muID_up, muIso_up = Muon_SFs(tightMuons, Wp="Tight", syst="systup", era=era) 
+            # muID_down, muIso_down = Muon_SFs(tightMuons, Wp="Tight", syst="systdown", era=era) 
+            # # print("\nmuID_sf\n", muID_sf)
+            # # print("\nmuIso_sf\n", muIso_sf)
+            # muSF = ak.prod(muID_sf * muIso_sf, axis=-1) # ak.prod(Array, axis=-1): multiplies the SFs for each element in the Array in an event, where Array has product of diff SFs
+            # # print("\nmuSF\n",muSF)
+            # muSF_up = ak.prod(muID_up * muIso_up, axis=-1)
+            # muSF_down = ak.prod(muID_down * muIso_down, axis=-1)
 
-            weights_CR.add("muEffWeight", weight=muSF, weightUp=muSF_up, weightDown=muSF_down)
-            # print(muSF)
+            # weights_CR.add("muEffWeight", weight=muSF, weightUp=muSF_up, weightDown=muSF_down)
+            # # print(muSF)
+            
             ##################
             # Electron SFs
             ##################
 
             #tightElectrons SF
-            electronID_sf = Electron_SFs(tightElectrons, Wp="Tight", syst="sf", era=era)         
+            electronID_sf = Electron_SFs(tightElectrons, Wp="Tight", syst="sf", era=era)                                                                                                                       
             # print("\nelectronID_sf\n",electronID_sf)
             electronID_up = Electron_SFs(tightElectrons, Wp="Tight", syst="sfup", era=era) 
             electronID_down = Electron_SFs(tightElectrons, Wp="Tight", syst="sfdown", era=era) 
@@ -969,6 +993,8 @@ class monoHbbProcessor(processor.ProcessorABC):
                     "puWeightDown",
                     "TriggerSFWeightUp",
                     "TriggerSFWeightDown",
+                    "ElectronTriggerSFWeightUp",
+                    "ElectronTriggerSFWeightDown",
                 ]
             else:
                 # if we are currently processing a shift systematic, we don't need to process any of the weight systematics
