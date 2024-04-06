@@ -12,46 +12,28 @@ from monoHbb.utils.crossSections import lumis, crossSections
 
 extraText = r"$t \bar{t}$($e \nu$) + FatJet CR"+" \n"+" Boosted"
 
-#-rw-r--r--. 1 prayag prayag  33K Apr  1 15:24 CR_DataA_BCatTope_2018_from_1_to_40.coffea
-#-rw-r--r--. 1 prayag prayag  32K Apr  1 15:24 CR_DataD_BCatTope_2018_from_1_to_50.coffea
-#-rw-r--r--. 1 prayag prayag  29K Apr  1 15:24 CR_DataD_BCatTope_2018_from_101_to_121.coffea
-#-rw-r--r--. 1 prayag prayag  30K Apr  1 15:24 CR_DataC_BCatTope_2018_from_1_to_24.coffea
-#-rw-r--r--. 1 prayag prayag  30K Apr  1 15:24 CR_DataB_BCatTope_2018_from_1_to_22.coffea
-#-rw-r--r--. 1 prayag prayag  32K Apr  1 15:24 CR_DataD_BCatTope_2018_from_51_to_100.coffea
-#-rw-r--r--. 1 prayag prayag 819K Apr  1 15:24 CR_MCSingleTop1_BCatTope_2018_from_101_to_150.coffea
-#-rw-r--r--. 1 prayag prayag 651K Apr  1 15:24 CR_MCSingleTop1_BCatTope_2018_from_151_to_200.coffea
-#-rw-r--r--. 1 prayag prayag 793K Apr  1 15:24 CR_MCSingleTop1_BCatTope_2018_from_1_to_50.coffea
-#-rw-r--r--. 1 prayag prayag 697K Apr  1 15:24 CR_MCSingleTop1_BCatTope_2018_from_201_to_250.coffea
-#-rw-r--r--. 1 prayag prayag 539K Apr  1 15:24 CR_MCSingleTop1_BCatTope_2018_from_251_to_279.coffea
-#-rw-r--r--. 1 prayag prayag 803K Apr  1 15:24 CR_MCSingleTop1_BCatTope_2018_from_51_to_100.coffea
-#-rw-r--r--. 1 prayag prayag 949K Apr  1 15:24 CR_MCSingleTop2_BCatTope_2018_from_1_to_52.coffea
-#-rw-r--r--. 1 prayag prayag 951K Apr  1 15:24 CR_MCSingleTop2_BCatTope_2018_from_53_to_75.coffea
-#-rw-r--r--. 1 prayag prayag 1.1M Apr  1 15:24 CR_MCTTbar1l1v_BCatTope_2018_from_1_to_47.coffea
-#-rw-r--r--. 1 prayag prayag 3.3M Apr  1 15:24 CR_MCWlvJets_BCatTope_2018_from_101_to_164.coffea
-#-rw-r--r--. 1 prayag prayag 767K Apr  1 15:24 CR_MCWlvJets_BCatTope_2018_from_1_to_50.coffea
-#-rw-r--r--. 1 prayag prayag 1.6M Apr  1 15:24 CR_MCWlvJets_BCatTope_2018_from_51_to_100.coffea
 
 outputData = accumulate([
-    util.load("coffea_files/ver6/CR_DataA_BCatTope_2018_from_1_to_40.coffea"),
-    util.load("coffea_files/ver6/CR_DataB_BCatTope_2018_from_1_to_22.coffea"),
-    util.load("coffea_files/ver6/CR_DataC_BCatTope_2018_from_1_to_24.coffea"),
-    util.load("coffea_files/ver6/CR_DataD_BCatTope_2018_from_1_to_50.coffea"),
-    util.load("coffea_files/ver6/CR_DataD_BCatTope_2018_from_51_to_100.coffea"),
-    util.load("coffea_files/ver6/CR_DataD_BCatTope_2018_from_101_to_121.coffea"),
+    util.load("coffea_files/ver7/CR_DataA_BCatTope_2018_from_1_to_40.coffea"),
+    util.load("coffea_files/ver7/CR_DataB_BCatTope_2018_from_1_to_22.coffea"),
+    util.load("coffea_files/ver7/CR_DataC_BCatTope_2018_from_1_to_24.coffea"),
+    util.load("coffea_files/ver7/CR_DataD_BCatTope_2018_from_1_to_50.coffea"),
+    util.load("coffea_files/ver7/CR_DataD_BCatTope_2018_from_51_to_100.coffea"),
+    util.load("coffea_files/ver7/CR_DataD_BCatTope_2018_from_101_to_121.coffea"),
 ])  
 outputMC = accumulate([
-    util.load("coffea_files/ver6/CR_MCTTbar1l1v_BCatTope_2018_from_1_to_47.coffea"),
-    util.load("coffea_files/ver6/CR_MCSingleTop1_BCatTope_2018_from_1_to_50.coffea"),
-    util.load("coffea_files/ver6/CR_MCSingleTop1_BCatTope_2018_from_51_to_100.coffea"),
-    util.load("coffea_files/ver6/CR_MCSingleTop1_BCatTope_2018_from_101_to_150.coffea"),
-    util.load("coffea_files/ver6/CR_MCSingleTop1_BCatTope_2018_from_151_to_200.coffea"),
-    util.load("coffea_files/ver6/CR_MCSingleTop1_BCatTope_2018_from_201_to_250.coffea"),
-    util.load("coffea_files/ver6/CR_MCSingleTop1_BCatTope_2018_from_251_to_279.coffea"),
-    util.load("coffea_files/ver6/CR_MCSingleTop2_BCatTope_2018_from_1_to_52.coffea"),
-    util.load("coffea_files/ver6/CR_MCSingleTop2_BCatTope_2018_from_53_to_75.coffea"),
-    util.load("coffea_files/ver6/CR_MCWlvJets_BCatTope_2018_from_1_to_50.coffea"),
-    util.load("coffea_files/ver6/CR_MCWlvJets_BCatTope_2018_from_51_to_100.coffea"),
-    util.load("coffea_files/ver6/CR_MCWlvJets_BCatTope_2018_from_101_to_164.coffea"),
+    util.load("coffea_files/ver7/CR_MCTTbar1l1v_BCatTope_2018_from_1_to_47.coffea"),
+    util.load("coffea_files/ver7/CR_MCSingleTop1_BCatTope_2018_from_1_to_50.coffea"),
+    util.load("coffea_files/ver7/CR_MCSingleTop1_BCatTope_2018_from_51_to_100.coffea"),
+    util.load("coffea_files/ver7/CR_MCSingleTop1_BCatTope_2018_from_101_to_150.coffea"),
+    util.load("coffea_files/ver7/CR_MCSingleTop1_BCatTope_2018_from_151_to_200.coffea"),
+    util.load("coffea_files/ver7/CR_MCSingleTop1_BCatTope_2018_from_201_to_250.coffea"),
+    util.load("coffea_files/ver7/CR_MCSingleTop1_BCatTope_2018_from_251_to_279.coffea"),
+    util.load("coffea_files/ver7/CR_MCSingleTop2_BCatTope_2018_from_1_to_52.coffea"),
+    util.load("coffea_files/ver7/CR_MCSingleTop2_BCatTope_2018_from_53_to_75.coffea"),
+    util.load("coffea_files/ver7/CR_MCWlvJets_BCatTope_2018_from_1_to_50.coffea"),
+    util.load("coffea_files/ver7/CR_MCWlvJets_BCatTope_2018_from_51_to_100.coffea"),
+    util.load("coffea_files/ver7/CR_MCWlvJets_BCatTope_2018_from_101_to_164.coffea"),
 ])
 
 
@@ -203,7 +185,7 @@ for key in outputHistMC.keys():
         Dict = {'Bin': bins_B_1eCR, 'Selection': sels_B_1eCR, 'NEvts_data': Nevents_Data[:13], 'NEvts_bkg': Nevents_MC[:13], 'Ratio': Ratio_DataMC}
         #print(Dict)
         df = pd.DataFrame(Dict)
-        np.savetxt('plots/ver6/boosted/e/'+str(key)+'_table_2018.txt', df.values, delimiter="\t", fmt='%d\t%s\t%.2e\t%.2e\t%.3f') 
+        np.savetxt('plots/ver7/boosted/e/'+str(key)+'_table_2018.txt', df.values, delimiter="\t", fmt='%d\t%s\t%.2e\t%.2e\t%.3f') 
         print("Cutflow saved")
 
         # make cutflow plot
@@ -215,7 +197,7 @@ for key in outputHistMC.keys():
         #print(hMC)
         #print(hData)
         plotWithRatio(h=hMC, hData=hData, overlay='dataset', logY=True, xLabel='Selection Bin', xRange=None, colors_cat='Topmu', extraText=None, lumi=59.83, year=2018)
-        plt.savefig('plots/ver6/boosted/e/'+str(key)+'_plot_2018.png')
+        plt.savefig('plots/ver7/boosted/e/'+str(key)+'_plot_2018.png')
         print("Cutflow plot saved")
  
 
@@ -228,7 +210,7 @@ def make_kinematicplot(var, Xlabel, rebin_factor, logY, xRange=None):
     
     figr, (ax) = plt.subplots(1)
     plotWithRatio(h=h1, hData=hData, overlay='dataset', logY=logY, xLabel=Xlabel, xRange=xRange, colors_cat='Topmu', extraText=extraText, lumi=59.83, year=2018)
-    plt.savefig('plots/ver6/boosted/e/'+var+'_BCatTope_2018.png')
+    plt.savefig('plots/ver7/boosted/e/'+var+'_BCatTope_2018.png')
     print(var, " plot saved")
 
 def make_debug_kinematicplot(debugvar, var, Xlabel, rebin_factor, logY, xRange=None):
@@ -238,7 +220,7 @@ def make_debug_kinematicplot(debugvar, var, Xlabel, rebin_factor, logY, xRange=N
     
     figr, (ax) = plt.subplots(1)
     plotWithRatio(h=h1, hData=hData, overlay='dataset', logY=logY, xLabel=Xlabel, xRange=xRange, colors_cat='Topmu', extraText=extraText, lumi=59.83, year=2018)
-    plt.savefig('plots/ver6/boosted/e/'+var+debugvar+'_BCatTope_2018.png')
+    plt.savefig('plots/ver7/boosted/e/'+var+debugvar+'_BCatTope_2018.png')
     print(var+debugvar, " plot saved")
 
 
@@ -355,7 +337,7 @@ def make_kinematicplot_2d(var, whichtau, Xlabel, rebin_factor, logY, xRange=None
     hData_ = outputHistData[var][{'dataset':sum}][{"labelname": whichtau, "systematic": 'noweight'}][...,::hist.rebin(rebin_factor)]
     figr, (ax) = plt.subplots(1)
     plotWithRatio(h=hMC_, hData=hData_, overlay='dataset', logY=logY, xLabel=Xlabel, xRange=xRange, colors_cat='Topmu', extraText=extraText, lumi=59.83, year=2018)
-    plt.savefig('plots/ver6/boosted/e/FJet_'+whichtau+'_2018.png')
+    plt.savefig('plots/ver7/boosted/e/FJet_'+whichtau+'_2018.png')
     print(whichtau, " plot saved")
 
 make_kinematicplot_2d(var="FJet_TauN", whichtau='tau1', Xlabel=r"FatJet $\tau_{1}$", rebin_factor=1, logY=False)
@@ -396,7 +378,7 @@ def checkSyst_nomUpDown(var, var_axis, syste, Title):
     ax.set_ylabel("Events")
     ax.set_title(Title, fontsize=16)
     ax.legend(fontsize=15)
-    plt.savefig('plots/ver6/boosted/e/'+str(var)+'_'+str(syste)+'_updown_2018.png') 
+    plt.savefig('plots/ver7/boosted/e/'+str(var)+'_'+str(syste)+'_updown_2018.png') 
     print(str(var)+'_'+str(syste)+'_updown', "plot saved")
 
 checkSyst_nomUpDown(var="MET_pT", var_axis="met", syste='JES', Title='JES')
