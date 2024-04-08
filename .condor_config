@@ -246,7 +246,7 @@ WANT_HOLD_REASON = ifThenElse($(WANT_HOLD_LONGJOB),"CMS user job ran for more th
 
 MaxJobRetirementTime = (IsDesktop =!= True) * (($(WANT_HOLD_MEMORY)) =!= True) * (($(WANT_HOLD_DISK)) =!= True) * ( \
    (HEP_VO =?= "lz" || OSG_VO =?= "lz") * 3600*24 + \
-   (HEP_VO =?= "uscms" || x509UserProxyVOName =?= "cms") * 3600*24*2  + \
+   (HEP_VO =?= "uscms" || OSG_VO =?= "uscms" || x509UserProxyVOName =?= "cms") * 3600*24*2  + \
    (User == "osg_cmsprod@hep.wisc.edu") * 3600*24*3 + \
    (regexp("(group_cmspilot)|(group_cmsprod)|(group_uscmspilot)",ifThenElse(isUndefined(AccountingGroup),"",AccountingGroup)) * 3600*24) \
 )
