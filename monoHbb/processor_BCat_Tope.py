@@ -10,11 +10,11 @@ from coffea.nanoevents import NanoAODSchema, NanoEventsFactory
 from .scalefactors import (
     jerjesCorrection,
     pileupSF,
-    #triggerEffLookup_18,
-    #triggerEffLookup_17,
     taggingEffLookupLooseWP_18,
     taggingEffLookupLooseWP_17,
-    ElectrontriggerEffLookup_18
+    ElectrontriggerEffLookup_18,
+    #triggerEffLookup_18,
+    #triggerEffLookup_17,
 )
 
 from collections import defaultdict
@@ -575,14 +575,14 @@ class monoHbbProcessor(processor.ProcessorABC):
 
         #Removing met trigger on Bhawna's suggestion 8th April 2024
         #MET Triggers 
-        #if era==2017:
+        if era==2017:
         #    selection.add("metTrigger", (events.HLT.PFMETNoMu120_PFMHTNoMu120_IDTight) )
-        #    taggingEffLookup = taggingEffLookupLooseWP_17
+            taggingEffLookup = taggingEffLookupLooseWP_17
         #    triggerEffLookup = triggerEffLookup_17
             
-        #elif era==2018:
+        elif era==2018:
         #    selection.add("metTrigger", (events.HLT.PFMETNoMu120_PFMHTNoMu120_IDTight) )
-        #    taggingEffLookup = taggingEffLookupLooseWP_18
+            taggingEffLookup = taggingEffLookupLooseWP_18
         #    triggerEffLookup = triggerEffLookup_18
         
         #Electron Trigger
