@@ -591,7 +591,6 @@ class monoHbbProcessor(processor.ProcessorABC):
         elif era==2018:
             selection.add("electronTrigger",(events.HLT.Ele32_WPTight_Gsf))
             ElectrontriggerEffLookup = ElectrontriggerEffLookup_18
-            #Add triggerEfficiencySF
 
         #print("line 550/957")
         #MET Filters
