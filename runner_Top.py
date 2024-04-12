@@ -86,7 +86,7 @@ if __name__=="__main__":
             "MCDYJetsZpT2",
             "MCDYJetsZpT3"
         ],
-        help="Enter which dataset to run: example MET_Run2018 , ZJets_Nu_Nu etc.",
+        help="Enter which dataset to run: example DataA , ZJets_Nu_Nu etc.",
         type=str
     )
 
@@ -147,12 +147,21 @@ if __name__=="__main__":
     )
     inputs = parser.parse_args()
 
+    if inputs.lepton == "e":
+        from monoHbb.processor_BCat_Tope import monoHbbProcessor
+        print("Processing Top Electron CR")
+        data_slug='EGM'
+    elif inputs.lepton == "mu":
+        from monoHbb.processor_BCat_Topmu import monoHbbProcessor
+        print("Processing Top Muon CR")
+        data_slug='MET'
+    print(f"Data used: {data_slug}")
 
     mc_group_mapping = {
-    "DataA": ['Data_MET_Run2018A'],
-    "DataB": ['Data_MET_Run2018B'],
-    "DataC": ['Data_MET_Run2018C'],
-    "DataD": ['Data_MET_Run2018D'],
+    "DataA": [f'Data_{data_slug}_Run2018A'],
+    "DataB": [f'Data_{data_slug}_Run2018B'],
+    "DataC": [f'Data_{data_slug}_Run2018C'],
+    "DataD": [f'Data_{data_slug}_Run2018D'],
     "MCTTbar1l1v": ['TTToSemiLeptonic_18'],
     "MCTTbar0l0v": ['TTToHadronic_18'],
     "MCTTbar2l2v": ['TTTo2L2Nu_18'],
@@ -234,13 +243,6 @@ if __name__=="__main__":
 
     if not os.path.exists(inputs.outdir):
         os.makedirs(inputs.outdir)
-
-    if inputs.lepton == "e":
-        from monoHbb.processor_BCat_Tope import monoHbbProcessor
-        print("Processing Top Electron CR")
-    elif inputs.lepton == "mu":
-        from monoHbb.processor_BCat_Topmu import monoHbbProcessor
-        print("Processing Top Muon CR")
         
     ismc = True
     if (inputs.keymap).startswith("Data"):
@@ -300,7 +302,7 @@ if __name__=="__main__":
             return full_fileset
     def getDataset(keymap, load=True, dict = None, files=None, begin=0, end=0, mode = "sequential"):
         #Warning : Never use 'files' with 'begin' and 'end'
-        fileset = Loadfileset("samples/2018_samples.json")
+        fileset = Loadfileset(f"samples/2018_{data_slug}_samples.json")
         fileset_dict = fileset.getraw()
         MCmaps =[
             "DataA",
@@ -526,7 +528,7 @@ if __name__=="__main__":
         #    )
         #client.upload_file('helper_files.zip')
 
-        with open("samples/2018_samples.json") as f: #load the fileset
+        with open(f"samples/2018_{data_slug}_samples.json") as f: #load the fileset
             filedict = json.load(f)
         files = getDataset(
             keymap=inputs.keymap,

@@ -142,25 +142,34 @@ def get_polar_corrected_MET(runera, npv, met_pt, met_phi):
     # depends on era and npv, npv = number of primary vertices
     ### for Data ###
     #2018:
-    if(runera=='Data_MET_Run2018A'): 
+    #if(runera=='Data_MET_Run2018A'): 
+    if runera.endswith('Run2018A'): 
         xcorr, ycorr = -(0.263733*npv +-1.91115), -(0.0431304*npv +-0.112043)
-    elif(runera=='Data_MET_Run2018B'): 
+    #elif(runera=='Data_MET_Run2018B'): 
+    elif runera.endswith('Run2018B'):
         xcorr, ycorr = -(0.400466*npv +-3.05914), -(0.146125*npv +-0.533233)
-    elif(runera=='Data_MET_Run2018C'): 
+    #elif(runera=='Data_MET_Run2018C'):
+    elif runera.endswith('Run2018C'):
         xcorr, ycorr = -(0.430911*npv +-1.42865), -(0.0620083*npv +-1.46021)
-    elif(runera=='Data_MET_Run2018D'): 
+    #elif(runera=='Data_MET_Run2018D'):
+    elif runera.endswith('Run2018D'):
         xcorr, ycorr = -(0.457327*npv +-1.56856), -(0.0684071*npv +-0.928372)
 
     #2017:
-    elif(runera=='Data_MET_Run2017B'):
+    #elif(runera=='Data_MET_Run2017B'):
+    elif runera.endswith('Run2017B'):
         xcorr, ycorr = -(-0.211161*npv +0.419333), -(0.251789*npv +-1.28089)
-    elif(runera=='Data_MET_Run2017C'):
+    #elif(runera=='Data_MET_Run2017C'):
+    elif runera.endswith('Run2017C'):
         xcorr, ycorr = -(-0.185184*npv +-0.164009), -(0.200941*npv +-0.56853)
-    elif(runera=='Data_MET_Run2017D'):
+    #elif(runera=='Data_MET_Run2017D'):
+    elif runera.endswith('Run2017D'):
         xcorr, ycorr = -(-0.201606*npv +0.426502), -(0.188208*npv +-0.58313)
-    elif(runera=='Data_MET_Run2017E'):
+    #elif(runera=='Data_MET_Run2017E'):
+    elif runera.endswith('Run2017E'):
         xcorr, ycorr = -(-0.162472*npv +0.176329), -(0.138076*npv +-0.250239)
-    elif(runera=='Data_MET_Run2017F'):
+    #elif(runera=='Data_MET_Run2017F'):
+    elif runera.endswith('Run2017F'):
         xcorr, ycorr = -(-0.210639*npv +0.72934), -(0.198626*npv +1.028)
 
         

@@ -623,15 +623,15 @@ class monoHbbProcessor(processor.ProcessorABC):
 
         BCat_Tope_CR = {
             #"metTrigger",
+            "metFilters",
             "electronTrigger",
             "NAK8Jet=1",
             "NisoaddAK4j<=2",
             "Nisoloosebjet=1", 
             "NtightElectron=1",
-            "NlooseMuons=0",
             "MET>50GeV",
             "Recoil_eTopCR>250GeV",
-            "metFilters",
+            "NlooseMuons=0",
             "Ntaus=0",
             "Nphotons=0",
             "HEM_veto"
@@ -641,12 +641,12 @@ class monoHbbProcessor(processor.ProcessorABC):
         #Defined by Prayag
         BCat_Tope_CR_withoutvetos = {
             #"metTrigger",
+            "metFilters",
             "electronTrigger",
             "NAK8Jet=1",
             "NisoaddAK4j<=2",
             "Nisoloosebjet=1", 
             "NtightElectron=1",
-            "NlooseMuons=0",
             "MET>50GeV",
             "Recoil_eTopCR>250GeV",
             }        
@@ -654,15 +654,15 @@ class monoHbbProcessor(processor.ProcessorABC):
 
         BCat_Tope_CR_minusHEM = {
             #"metTrigger",
+            "metFilters",
             "electronTrigger",
             "NAK8Jet=1",
             "NisoaddAK4j<=2",
             "Nisoloosebjet=1", 
             "NtightElectron=1",
-            "NlooseMuons=0",
             "MET>50GeV",
             "Recoil_eTopCR>250GeV",
-            "metFilters",
+            "NlooseMuons=0",
             "Ntaus=0",
             "Nphotons=0",
             }        
@@ -677,13 +677,13 @@ class monoHbbProcessor(processor.ProcessorABC):
 
         BCat_Tope_CR_AK8only = {
             #"metTrigger",
+            "metFilters",
             "electronTrigger",
             "NAK8Jet=1",
             "NtightElectron=1",
-            "NlooseMuons=0",
             "MET>50GeV",
             "Recoil_eTopCR>250GeV",
-            "metFilters",
+            "NlooseMuons=0",
             "Ntaus=0",
             "Nphotons=0",
             "HEM_veto",
@@ -732,14 +732,14 @@ class monoHbbProcessor(processor.ProcessorABC):
             
             selectionBCatCRTope = PackedSelection()
             selectionBCatCRTope.add("0", (events.MET.pt>0) )
-            selectionBCatCRTope.add("1", selection.all("electronTrigger") )
-            selectionBCatCRTope.add("2", (selectionBCatCRTope.all("1")) & (selection.all("NAK8Jet=1")) )
-            selectionBCatCRTope.add("3", (selectionBCatCRTope.all("2")) & (selection.all("NisoaddAK4j<=2")) )
-            selectionBCatCRTope.add("4", (selectionBCatCRTope.all("3")) & (selection.all("Nisoloosebjet=1")) )
-            selectionBCatCRTope.add("5", (selectionBCatCRTope.all("4")) & (selection.all("NtightElectron=1")) & (selection.all("NlooseMuons=0")))
-            selectionBCatCRTope.add("6", (selectionBCatCRTope.all("5")) & (selection.all("MET>50GeV")) )
-            selectionBCatCRTope.add("7", (selectionBCatCRTope.all("6")) & (selection.all("Recoil_eTopCR>250GeV")) )
-            selectionBCatCRTope.add("8", (selectionBCatCRTope.all("7")) & (selection.all("metFilters")) )
+            selectionBCatCRTope.add("1", selection.all("metFilters") )
+            selectionBCatCRTope.add("2", (selectionBCatCRTope.all("1")) & (selection.all("electronTrigger")) )
+            selectionBCatCRTope.add("3", (selectionBCatCRTope.all("2")) & (selection.all("NAK8Jet=1")) )
+            selectionBCatCRTope.add("4", (selectionBCatCRTope.all("3")) & (selection.all("NisoaddAK4j<=2")) )
+            selectionBCatCRTope.add("5", (selectionBCatCRTope.all("4")) & (selection.all("Nisoloosebjet=1")) )
+            selectionBCatCRTope.add("6", (selectionBCatCRTope.all("5")) & (selection.all("NtightElectron=1")) & (selection.all("NlooseMuons=0")))
+            selectionBCatCRTope.add("7", (selectionBCatCRTope.all("6")) & (selection.all("MET>50GeV")) )
+            selectionBCatCRTope.add("8", (selectionBCatCRTope.all("7")) & (selection.all("Recoil_eTopCR>250GeV")) )
             selectionBCatCRTope.add("9", (selectionBCatCRTope.all("8")) & (selection.all("Ntaus=0")) )
             selectionBCatCRTope.add("10", (selectionBCatCRTope.all("9")) & (selection.all("Nphotons=0")) )
             selectionBCatCRTope.add("11", (selectionBCatCRTope.all("10")) & (selection.all("HEM_veto")) )
@@ -758,13 +758,14 @@ class monoHbbProcessor(processor.ProcessorABC):
 
             selectionBCatCRTope_withoutvetos = PackedSelection()
             selectionBCatCRTope_withoutvetos.add("0", (events.MET.pt>0) )
-            selectionBCatCRTope_withoutvetos.add("1", selection.all("electronTrigger") )
-            selectionBCatCRTope_withoutvetos.add("2", (selectionBCatCRTope_withoutvetos.all("1")) & (selection.all("NAK8Jet=1")) )
-            selectionBCatCRTope_withoutvetos.add("3", (selectionBCatCRTope_withoutvetos.all("2")) & (selection.all("NisoaddAK4j<=2")) )
-            selectionBCatCRTope_withoutvetos.add("4", (selectionBCatCRTope_withoutvetos.all("3")) & (selection.all("Nisoloosebjet=1")) )
-            selectionBCatCRTope_withoutvetos.add("5", (selectionBCatCRTope_withoutvetos.all("4")) & (selection.all("NtightElectron=1")) & (selection.all("NlooseMuons=0")))
-            selectionBCatCRTope_withoutvetos.add("6", (selectionBCatCRTope_withoutvetos.all("5")) & (selection.all("MET>50GeV")) )
-            selectionBCatCRTope_withoutvetos.add("7", (selectionBCatCRTope_withoutvetos.all("6")) & (selection.all("Recoil_eTopCR>250GeV")) )
+            selectionBCatCRTope_withoutvetos.add("1", selection.all("metFilters") )
+            selectionBCatCRTope_withoutvetos.add("2", (selectionBCatCRTope_withoutvetos.all("1")) & (selection.all("electronTrigger")) )
+            selectionBCatCRTope_withoutvetos.add("3", (selectionBCatCRTope_withoutvetos.all("2")) & (selection.all("NAK8Jet=1")) )
+            selectionBCatCRTope_withoutvetos.add("4", (selectionBCatCRTope_withoutvetos.all("3")) & (selection.all("NisoaddAK4j<=2")) )
+            selectionBCatCRTope_withoutvetos.add("5", (selectionBCatCRTope_withoutvetos.all("4")) & (selection.all("Nisoloosebjet=1")) )
+            selectionBCatCRTope_withoutvetos.add("6", (selectionBCatCRTope_withoutvetos.all("5")) & (selection.all("NtightElectron=1")) & (selection.all("NlooseMuons=0")))
+            selectionBCatCRTope_withoutvetos.add("7", (selectionBCatCRTope_withoutvetos.all("6")) & (selection.all("MET>50GeV")) )
+            selectionBCatCRTope_withoutvetos.add("8", (selectionBCatCRTope_withoutvetos.all("7")) & (selection.all("Recoil_eTopCR>250GeV")) )
 
             #selectionBCatCRTope_minusHEM = PackedSelection()
             #selectionBCatCRTope_minusHEM.add("0", (events.MET.pt>0) )
@@ -782,14 +783,14 @@ class monoHbbProcessor(processor.ProcessorABC):
             
             selectionBCatCRTope_minusHEM = PackedSelection()
             selectionBCatCRTope_minusHEM.add("0", (events.MET.pt>0) )
-            selectionBCatCRTope_minusHEM.add("1", selection.all("electronTrigger") )
-            selectionBCatCRTope_minusHEM.add("2", (selectionBCatCRTope_minusHEM.all("1")) & (selection.all("NAK8Jet=1")) )
-            selectionBCatCRTope_minusHEM.add("3", (selectionBCatCRTope_minusHEM.all("2")) & (selection.all("NisoaddAK4j<=2")) )
-            selectionBCatCRTope_minusHEM.add("4", (selectionBCatCRTope_minusHEM.all("3")) & (selection.all("Nisoloosebjet=1")) )
-            selectionBCatCRTope_minusHEM.add("5", (selectionBCatCRTope_minusHEM.all("4")) & (selection.all("NtightElectron=1")) & (selection.all("NlooseMuons=0")))
-            selectionBCatCRTope_minusHEM.add("6", (selectionBCatCRTope_minusHEM.all("5")) & (selection.all("MET>50GeV")) )
-            selectionBCatCRTope_minusHEM.add("7", (selectionBCatCRTope_minusHEM.all("6")) & (selection.all("Recoil_eTopCR>250GeV")) )
-            selectionBCatCRTope_minusHEM.add("8", (selectionBCatCRTope_minusHEM.all("7")) & (selection.all("metFilters")) )
+            selectionBCatCRTope_minusHEM.add("1", selection.all("metFilters") )
+            selectionBCatCRTope_minusHEM.add("2", (selectionBCatCRTope_minusHEM.all("1")) & (selection.all("electronTrigger")) )
+            selectionBCatCRTope_minusHEM.add("3", (selectionBCatCRTope_minusHEM.all("2")) & (selection.all("NAK8Jet=1")) )
+            selectionBCatCRTope_minusHEM.add("4", (selectionBCatCRTope_minusHEM.all("3")) & (selection.all("NisoaddAK4j<=2")) )
+            selectionBCatCRTope_minusHEM.add("5", (selectionBCatCRTope_minusHEM.all("4")) & (selection.all("Nisoloosebjet=1")) )
+            selectionBCatCRTope_minusHEM.add("6", (selectionBCatCRTope_minusHEM.all("5")) & (selection.all("NtightElectron=1")) & (selection.all("NlooseMuons=0")))
+            selectionBCatCRTope_minusHEM.add("7", (selectionBCatCRTope_minusHEM.all("6")) & (selection.all("MET>50GeV")) )
+            selectionBCatCRTope_minusHEM.add("8", (selectionBCatCRTope_minusHEM.all("7")) & (selection.all("Recoil_eTopCR>250GeV")) )
             selectionBCatCRTope_minusHEM.add("9", (selectionBCatCRTope_minusHEM.all("8")) & (selection.all("Ntaus=0")) )
             selectionBCatCRTope_minusHEM.add("10", (selectionBCatCRTope_minusHEM.all("9")) & (selection.all("Nphotons=0")) )
             
