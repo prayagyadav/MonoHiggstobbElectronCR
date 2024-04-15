@@ -13,6 +13,7 @@ from .scalefactors import (
     taggingEffLookupLooseWP_18,
     taggingEffLookupLooseWP_17,
     ElectrontriggerEffLookup_18,
+    ElectronrecoEffLookup_18,
     #triggerEffLookup_18,
     #triggerEffLookup_17,
 )
@@ -374,10 +375,10 @@ class monoHbbProcessor(processor.ProcessorABC):
         #Twiki link: https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETRun2Corrections#xy_Shift_Correction_MET_phi_modu 
         #Correction factors from https://lathomas.web.cern.ch/lathomas/METStuff/XYCorrections/XYMETCorrection_withUL17andUL18andUL16.h
         if self.isMC==False:
-            corr_MET_pt, corr_MET_phi = jerjesCorrection.get_polar_corrected_MET(runera=dataset, npv=events.PV.npvsGood, met_pt=events.MET.pt, met_phi=events.MET.phi)
+            corr_MET_pt, corr_MET_phi = jerjesCorrection.get_polar_corrected_MET(runera=dataset, npv=events.PV.npvs, met_pt=events.MET.pt, met_phi=events.MET.phi)
 
         if self.isMC==True:
-            corr_MET_pt, corr_MET_phi = jerjesCorrection.get_polar_corrected_MET(runera=era, npv=events.PV.npvsGood, met_pt=events.MET.pt, met_phi=events.MET.phi)
+            corr_MET_pt, corr_MET_phi = jerjesCorrection.get_polar_corrected_MET(runera=era, npv=events.PV.npvs, met_pt=events.MET.pt, met_phi=events.MET.phi)
 
         # # For HEM cleaning, separate the MC events into affected and non-affected
         # # fraction of lumi from affected 2018 Data runs is 0.647724485 (from brilcalc)
@@ -864,14 +865,14 @@ class monoHbbProcessor(processor.ProcessorABC):
             #triggerSFWeight_Down = (triggerSFWeight - triggerSF_err)
             #weights_CR.add("TriggerSFWeight",weight=triggerSFWeight,weightUp=triggerSFWeight_Up,weightDown=triggerSFWeight_Down,)                
 
-            #########################
-            # Electron Trigger SF
-            #########################
+            ###############################
+            # Electron Trigger and reco SF
+            ###############################
 
             # # Given the Electron in an event, the event will have an SF value which we read from a lookup table 
-            def get_electron_trigger_weight(tight_electrons, lookup_table):
+            def get_electron_weight(tight_electrons, lookup_table):
                 '''
-                Provides the electron trigger scale factor in appropriate event weight format.
+                Provides the electron trigger or reco scale factor in appropriate event weight format.
                 '''
                 a =  ak.mask(tight_electrons, ak.num(tight_electrons) == 1)
                 b = lookup_table(abs(a.eta),a.pt)
@@ -879,11 +880,16 @@ class monoHbbProcessor(processor.ProcessorABC):
                 d = ak.flatten(c)
                 e = ak.mask(d, d>0)
                 return e
-            ElectrontriggerSFWeight = get_electron_trigger_weight(tightElectrons,ElectrontriggerEffLookup)
+            ElectrontriggerSFWeight = get_electron_weight(tightElectrons,ElectrontriggerEffLookup)
+            ElectronrecoSFWeight = get_electron_weight(tightElectrons,ElectronrecoEffLookup_18)
             ElectrontriggerSF_err = ak.where(ElectrontriggerSFWeight>0, 0.01, 0.00) # assigning 1 % uncertainty to all
+            ElectronrecoSF_err = ak.where(ElectronrecoSFWeight>0, 0.01, 0.00) # assigning 1 % uncertainty to all
             ElectrontriggerSFWeight_Up = (ElectrontriggerSFWeight + ElectrontriggerSF_err)
             ElectrontriggerSFWeight_Down = (ElectrontriggerSFWeight - ElectrontriggerSF_err)
-            weights_CR.add("ElectronTriggerSFWeight",weight=ElectrontriggerSFWeight,weightUp=ElectrontriggerSFWeight_Up,weightDown=ElectrontriggerSFWeight_Down,)                
+            ElectronrecoSFWeight_Up = (ElectronrecoSFWeight + ElectronrecoSF_err)
+            ElectronrecoSFWeight_Down = (ElectronrecoSFWeight - ElectronrecoSF_err)
+            weights_CR.add("ElectronTriggerSFWeight",weight=ElectrontriggerSFWeight,weightUp=ElectrontriggerSFWeight_Up,weightDown=ElectrontriggerSFWeight_Down,) 
+            weights_CR.add("ElectronrecoSFWeight",weight=ElectronrecoSFWeight,weightUp=ElectronrecoSFWeight_Up,weightDown=ElectronrecoSFWeight_Down,)                
             
             #print("line 673/957")
             ##################
@@ -1021,6 +1027,30 @@ class monoHbbProcessor(processor.ProcessorABC):
         evtSels_withoutvetos = "BoostedCatSels_CR_Tope_withoutvetos"
         evtSels_minusHEM = "BoostedCatSels_CR_Tope_minusHEM"
 
+
+        #Added by Prayag
+        #Add the last bin to the cutflow histograms; this bin implements all the eventweights
+
+        if(self.isMC):         
+            evtWeight_cutflow = weights_CR.weight()
+        else:
+            evtWeight = np.ones(len(events.MET.pt))
+
+        bin = 0
+        bin = len(selectionBCatCRTope.names) # bin started from 0 thats why last bin is the length of the array
+        #print("bin = ", bin )
+        n = selectionBCatCRTope.names[-1]
+        selec = ak.Array(selectionBCatCRTope.all(n))
+        # print("n = ", n)
+        # print("length of event weight = ",len(evtWeight))
+        # print("hist weight = ", (selectionBCatCRTope.all(n).sum()))
+        output["Cutflow_BCat_CRTope"].fill(
+            dataset=dataset,
+            cut=np.asarray(bin),
+            weight=evtWeight_cutflow[selec].sum(),
+        )
+
+        
         systList = []
         if(self.isMC):         
             if shift_syst is None:
@@ -1036,6 +1066,8 @@ class monoHbbProcessor(processor.ProcessorABC):
                     #"TriggerSFWeightDown",
                     "ElectronTriggerSFWeightUp",
                     "ElectronTriggerSFWeightDown",
+                    "ElectronrecoSFWeightUp",
+                    "ElectronrecoSFWeightDown",
                 ]
             else:
                 # if we are currently processing a shift systematic, we don't need to process any of the weight systematics
@@ -1224,6 +1256,7 @@ class monoHbbProcessor(processor.ProcessorABC):
             for key, value in {'n2b1': AK8jets.n2b1, 'n3b1': AK8jets.n3b1}.items():
                 output['FJet_n2b1_n3b1_BCatMinus2'].fill(dataset=dataset, labelname=key, nNbeta1=ak.flatten(value[selection.all(evtSel_untilAK8)], axis=None), systematic=syst, weight=evtWeight[selection.all(evtSel_untilAK8)])
 
+        
         #print("line 966/957")
         #print(output)
         return {dataset:output}

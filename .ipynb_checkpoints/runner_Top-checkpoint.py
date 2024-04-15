@@ -573,7 +573,7 @@ if __name__=="__main__":
         #)
         #client.upload_file('helper_files.zip')
 
-        with open("samples/2018_samples.json") as f: #load the fileset
+        with open(f"samples/2018_{data_slug}_samples.json") as f: #load the fileset
             filedict = json.load(f)
     
         files = getDataset(

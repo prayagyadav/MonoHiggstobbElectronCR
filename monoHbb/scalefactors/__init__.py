@@ -38,6 +38,13 @@ taggingEffLookupTightWP_17 = pickle.load(open(f"{cwd}/taggingEfficienciesDenseLo
 taggingEffLookupMediumWP_17 = pickle.load(open(f"{cwd}/taggingEfficienciesDenseLookupMediumWP_MCBkgs_UL2017_10Mevts.pkl", 'rb'))
 taggingEffLookupLooseWP_17 = pickle.load(open(f"{cwd}/taggingEfficienciesDenseLookupLooseWP_MCBkgs_UL2017_10Mevts.pkl", 'rb'))
 
+#Electron Reconstruction SF
+ex2 = extractor()
+ex2.add_weight_sets([f"ElectronrecoSF EGamma_SF2D {cwd}/egammaEffi_ptAbove20_UL2018.root"])
+ex2.finalize()
+evaluator = ex2.make_evaluator()
+ElectronrecoEffLookup_18 = evaluator['ElectronrecoSF']
+ElectronrecoEffLookup_18
 
 #Electron Trigger SF
 ex = extractor()

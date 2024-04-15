@@ -142,7 +142,10 @@ def get_polar_corrected_MET(runera, npv, met_pt, met_phi):
     # depends on era and npv, npv = number of primary vertices
     ### for Data ###
     #2018:
-    #if(runera=='Data_MET_Run2018A'): 
+    #if(runera=='Data_MET_Run2018A'):
+
+    runera = str(runera)
+    
     if runera.endswith('Run2018A'): 
         xcorr, ycorr = -(0.263733*npv +-1.91115), -(0.0431304*npv +-0.112043)
     #elif(runera=='Data_MET_Run2018B'): 
@@ -174,9 +177,9 @@ def get_polar_corrected_MET(runera, npv, met_pt, met_phi):
 
         
     ### for MC ###
-    elif(runera==2017):
+    elif(runera=='2017'):
         xcorr, ycorr = -(-0.300155*npv +1.90608), -(0.300213*npv +-2.02232)
-    elif(runera==2018):
+    elif(runera=='2018'):
         xcorr, ycorr = -(0.183518*npv +0.546754), -(0.192263*npv +-0.42121)
         
     #Add met correction factor to uncorrected component
