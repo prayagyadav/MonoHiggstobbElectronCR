@@ -24,7 +24,7 @@ def GroupBy(h, oldname, newname, grouping):
 
 def plotWithRatio(
         h,
-        hData,
+        hData=None,
         xLabel,
         overlay,
         xRange,

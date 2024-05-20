@@ -24,7 +24,7 @@ def GroupBy(h, oldname, newname, grouping):
 
 def plotWithRatio(
         h,
-        hData=None,
+        hData,
         xLabel,
         overlay,
         xRange,
@@ -69,10 +69,13 @@ def plotWithRatio(
 
 
     if not hData is None:
-        fig, (ax, rax) = plt.subplots(
-            2, 1, figsize=(7, 7), gridspec_kw={"height_ratios": (3, 1)}, sharex=True
-        )
-        fig.subplots_adjust(hspace=0.05)
+        # fig, (ax, rax) = plt.subplots(
+        #     2, 1, figsize=(7, 7), gridspec_kw={"height_ratios": (3, 1)}, sharex=True
+        # )
+        # fig.subplots_adjust(hspace=0.05)
+        fig, ax = plt.subplots(
+            1, 1, figsize=(7, 7)
+        )  # , gridspec_kw={"height_ratios": (3, 1)}, sharex=True)
     else:
         fig, ax = plt.subplots(
             1, 1, figsize=(7, 7)
@@ -147,19 +150,20 @@ def plotWithRatio(
     if not hData is None:
         
         if binwnorm:
-            ax.errorbar(x=hData.axes[0].centers,
-                        y=hData.values()/np.diff(hData.axes[0].edges),
-                        xerr=np.diff(hData.axes[0].edges)/2,
-                        yerr=np.sqrt(hData.values())/np.diff(hData.axes[0].edges),
-                        color='black',
-                        marker='.',
-                        markersize=8,
-                        linewidth=0,
-                        elinewidth=0.5,
-                        label="Data",
-            )
+            # ax.errorbar(x=hData.axes[0].centers,
+            #             y=hData.values()/np.diff(hData.axes[0].edges),
+            #             xerr=np.diff(hData.axes[0].edges)/2,
+            #             yerr=np.sqrt(hData.values())/np.diff(hData.axes[0].edges),
+            #             color='black',
+            #             marker='.',
+            #             markersize=8,
+            #             linewidth=0,
+            #             elinewidth=0.5,
+            #             label="Data",
+            # )
+            pass
         else:
-            
+            pass
             # ax.errorbar(x=hData.axes[0].centers,
             #             y=hData.values(),
             #             xerr=np.diff(hData.axes[0].edges)/2,
@@ -184,9 +188,10 @@ def plotWithRatio(
     ax.autoscale(axis="x", tight=True)
     #ax.set_ylim(0, None)
 
-    ax.set_xlabel(None)
+    # ax.set_xlabel(None)
+    ax.set_xlabel(xLabel)
     if hData is None:
-        ax.set_xlabel(xlabel)
+        ax.set_xlabel(xLabel)
 
     if leg == "right":
         leg_anchor = (1.0, 1.0)
@@ -207,14 +212,14 @@ def plotWithRatio(
     
     #print("stage 6")
     if not hData is None:
-        
-        ratio_uncertainty_band = rax.fill_between(
-            hData.axes[0].edges,
-            ratio_mcStatUp,
-            ratio_mcStatDo,
-            step='post',
-            color='lightgray',
-        )
+        pass
+        # ratio_uncertainty_band = rax.fill_between(
+        #     hData.axes[0].edges,
+        #     ratio_mcStatUp,
+        #     ratio_mcStatDo,
+        #     step='post',
+        #     color='lightgray',
+        # )
 
     if not hData is None:
         
@@ -236,28 +241,28 @@ def plotWithRatio(
 
         
         #print("stage 7")
-        rax.errorbar(x=hData.axes[0].centers, 
-                     y=ratios, 
-                     xerr=np.diff(hData.axes[0].edges)/2,
-                     yerr=ratio_uncert,
-                     color='black', 
-                     marker='.', 
-                     markersize=8, 
-                     linewidth=0, 
-                     elinewidth=1, 
-                     label="Ratio",
-        )
+        # rax.errorbar(x=hData.axes[0].centers, 
+        #              y=ratios, 
+        #              xerr=np.diff(hData.axes[0].edges)/2,
+        #              yerr=ratio_uncert,
+        #              color='black', 
+        #              marker='.', 
+        #              markersize=8, 
+        #              linewidth=0, 
+        #              elinewidth=1, 
+        #              label="Ratio",
+        # )
 
-        rax.set_xlabel(xLabel,fontsize=16,loc="right")
-        rax.set_ylim(ratioRange[0], ratioRange[1])
-        rax.axhline(y=1, color='black', linestyle='dashed')
-        rax.axhline(y=1.1, color='grey', linestyle='dotted')
-        rax.axhline(y=0.9, color='grey', linestyle='dotted')
-        rax.axhline(y=1.2, color='grey', linestyle='dotted')
-        rax.axhline(y=0.8, color='grey', linestyle='dotted')
-        rax.axhline(y=1.3, color='grey', linestyle='dotted')
-        rax.axhline(y=0.7, color='grey', linestyle='dotted')
-        rax.set_ylabel('Data/MC')
+        # rax.set_xlabel(xLabel,fontsize=16,loc="right")
+        # rax.set_ylim(ratioRange[0], ratioRange[1])
+        # rax.axhline(y=1, color='black', linestyle='dashed')
+        # rax.axhline(y=1.1, color='grey', linestyle='dotted')
+        # rax.axhline(y=0.9, color='grey', linestyle='dotted')
+        # rax.axhline(y=1.2, color='grey', linestyle='dotted')
+        # rax.axhline(y=0.8, color='grey', linestyle='dotted')
+        # rax.axhline(y=1.3, color='grey', linestyle='dotted')
+        # rax.axhline(y=0.7, color='grey', linestyle='dotted')
+        # rax.set_ylabel('Data/MC')
 
 
     if logY:
@@ -276,8 +281,8 @@ def plotWithRatio(
 
     #print("stage 8")
     CMS = plt.text(
-        0.01, #0.02,
-        1.0, #0.89,
+        0.02, #0.02,
+        0.89, #0.89,
         r"$\bf{CMS}$ Work in Progress",
         fontsize=14,
         horizontalalignment="left",
@@ -311,13 +316,13 @@ def plotWithRatio(
     #print("stage 9")
     ax.legend(fontsize=14, ncol=2, loc='upper right', frameon=False, bbox_to_anchor=(1.0, 1.0)).shadow=False
     ax.tick_params(axis='both', direction='in', length=5, which='minor')
-    rax.tick_params(axis='both', direction='in', length=5, which='minor')
+    #rax.tick_params(axis='both', direction='in', length=5, which='minor')
     ax.tick_params(axis='both', direction='in', length=10, which='major')
-    rax.tick_params(axis='both', direction='in', length=10, which='major')
+    # rax.tick_params(axis='both', direction='in', length=10, which='major')
     ax.tick_params(top=True, right=True, which='both')
-    rax.tick_params(top=True, right=True, which='both')
+    #rax.tick_params(top=True, right=True, which='both')
     ax.minorticks_on()
-    rax.minorticks_on()
+    # rax.minorticks_on()
 
     
     #print("stage 10")
